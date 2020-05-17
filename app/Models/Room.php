@@ -52,4 +52,12 @@ class Room extends Model
     {
         return self::where('user_id', '=', $_supervisorId)->get();
     }
+
+    public function roomUsers() {
+        return User::query()->where('created_by','=',$this->user_id)->orWhere('id',$this->user_id)->get();
+    }
+
+    public function onlineRoomUsers() {
+        return User::query()->where('created_by','=',$this->user_id)->orWhere('id',$this->user_id)->get();
+    }
 }

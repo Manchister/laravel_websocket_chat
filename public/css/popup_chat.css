@@ -54,6 +54,7 @@
 	margin-right:10px;
 	border-radius:5px;
 	word-break: break-all;
+	text-align: left;
 }
 
 .msg-right{
@@ -65,4 +66,5 @@
 	margin-left:10px;
 	border-radius:5px;
 	word-break: break-all;
+	text-align: right;
 }

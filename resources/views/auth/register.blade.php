@@ -1,17 +1,17 @@
 <!doctype html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
-    <meta charset="utf-8" />
+    <meta charset="utf-8"/>
     <link rel="icon" type="image/png" href="#">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
 
     <title>{{ config('app.name', 'chatRoom') }}</title>
 
-    <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />
-    <meta name="viewport" content="width=device-width" />
+    <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport'/>
+    <meta name="viewport" content="width=device-width"/>
 
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="{{asset ('/css/login_register.css')}}" type="text/css" media="all" /> <!-- Style-CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="{{asset ('/css/login_register.css')}}" type="text/css" media="all"/> <!-- Style-CSS -->
     <!--     Fonts and icons     -->
     <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
     <link href='http://fonts.googleapis.com/css?family=Montserrat' rel='stylesheet' type='text/css'>
@@ -40,21 +40,24 @@
                         <form class="form-horizontal" method="POST" action="{{ route('register') }}">
                             {{ csrf_field() }}
                             <label>{{__('auth.Name')}}</label>
-                            <input id="name" type="text" class="form-control" name="name" value="{{ old('name') }}" required autofocus>
+                            <input id="name" type="text" class="form-control" name="name" value="{{ old('name') }}"
+                                   required autofocus>
                             @if ($errors->has('name'))
                                 <span class="help-block">
                                             <strong>{{ $errors->first('name') }}</strong>
                                         </span>
                             @endif
                             <label>{{__('auth.UserName')}}</label>
-                            <input id="username" type="text" class="form-control" name="username" value="{{ old('username') }}" required autofocus>
+                            <input id="username" type="text" class="form-control" name="username"
+                                   value="{{ old('username') }}" required autofocus>
                             @if ($errors->has('username'))
                                 <span class="help-block">
                                             <strong>{{ $errors->first('username') }}</strong>
                                         </span>
                             @endif
                             <label>{{__('auth.nick_name')}}</label>
-                            <input id="nick_name" type="text" class="form-control" name="nick_name" value="{{ old('nick_name') }}" required>
+                            <input id="nick_name" type="text" class="form-control" name="nick_name"
+                                   value="{{ old('nick_name') }}" required>
 
                             @if ($errors->has('nick_name'))
                                 <span class="help-block">
@@ -62,7 +65,8 @@
                                         </span>
                             @endif
                             <label>{{__('auth.E-Mail Address')}}</label>
-                            <input id="email" type="email" class="form-control" name="email" value="{{ old('email') }}" required>
+                            <input id="email" type="email" class="form-control" name="email" value="{{ old('email') }}"
+                                   required>
 
                             @if ($errors->has('email'))
                                 <span class="help-block">
@@ -81,13 +85,13 @@
                             @endif
 
                             <label>{{__('auth.Confirm Password')}}</label>
-                            <input id="password-confirm" type="password" class="form-control" name="password_confirmation" required>
-                            <input id="room_id" type="hidden"  name="room_id" value="{{$id}}" required>
-                            <input type="submit" class="btn btn-primary btn-block" value="{{__('auth.Sign Up')}}" />
+                            <input id="password-confirm" type="password" class="form-control"
+                                   name="password_confirmation" required>
+                            <input id="room_id" type="hidden" name="room_id" value="{{$id}}" required>
+                            <input type="submit" class="btn btn-primary btn-block" value="{{__('auth.Sign Up')}}"/>
 
                         </form>
                         <div class="forgot">
-
                             <a href="{{ route('login') }}" class="btn btn-simple btn-danger">{{__('auth.have Account')}}</a>
                         </div>
                     </div>
@@ -95,7 +99,9 @@
             </div>
         </div>
         <div class="footer register-footer text-center">
-            <h6>&copy; <script>document.write(new Date().getFullYear())</script> | {{ config('app.name', 'chatRoom') }}</h6>
+            <h6>&copy;
+                <script>document.write(new Date().getFullYear())</script>
+                | {{ config('app.name', 'chatRoom') }}</h6>
         </div>
     </div>
 </div>

@@ -17,7 +17,7 @@ body {
     width: 100%;
     height: 100vh;
     background: #E6EAEA;
-    display: none;
+    /*display: none;*/
 }
 
 @media screen and (max-width: 360px) {
@@ -809,4 +809,44 @@ body {
 .settings {
     display: none;
     text-align: right;
+}
+/* NEW */
+.card-title {
+    color: #f9f5f4;
+}
+.single-room {
+    display: flex;
+    border: 1px solid aliceblue;
+    border-radius: 4px;
+    width: 100% !important;
+    margin: 2px 0 2px 0;
+    cursor: pointer;
+}
+.single-room .name {
+    color: #ffffff;
+    text-align: center;
+}
+.single-room .meta {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    width: 100% !important;
+}
+.single-room .preview {
+    color: #ff8f5e;
+}
+.contact.rooms .name, .contact.rooms .preview {
+    color: #ffffff;
+}
+.contact.rooms a:hover, .contact.rooms .name:hover {
+    color: #FF8F5E;
+    text-decoration: none !important;
+    text-underline-mode: none !important;
+}
+.msg_input .wrap {
+    display: flex !important;
+}
+.msg_input_submit i.fa {
+    font-size: 14px;
+    line-height: 18px;
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App as AppAlias;
+use App\Admin\Models\UserRole;
 use App\Models\BlockUsers;
 use App\Models\Message;
 use App\Models\Room;
@@ -25,6 +26,7 @@ class WebSocketController extends Controller implements MessageComponentInterfac
     private $users;
     private $userresources;
     private $usersroom;
+
     public function __construct()
     {
         $this->clients = new \SplObjectStorage;
@@ -80,7 +82,7 @@ class WebSocketController extends Controller implements MessageComponentInterfac
                         $result['message'] = $data->message;
                         $result['from'] = $user->id;
                         $result['nick_name'] = $user->nick_name;
-                        $result['name'] =  $user->name;
+                        $result['name'] = $user->name;
                         $result['created_at'] = date('Y-m-d H:i:s');
                     }
 
@@ -114,7 +116,7 @@ class WebSocketController extends Controller implements MessageComponentInterfac
     /**
      * [onOpen description]
      * @method onOpen
-     * @param  ConnectionInterface $conn [description]
+     * @param ConnectionInterface $conn [description]
      * @return [JSON]                    [description]
      * @example connection               var conn = new WebSocket('ws://localhost:8090');
      */
@@ -139,6 +141,8 @@ class WebSocketController extends Controller implements MessageComponentInterfac
     function userSettings($user, $data, ConnectionInterface $conn)
     {
 
+
+        if (!$user->can('is_room_supervisor') && !($user->user_level == 3)) return;
         $roleId = null;
         $roleSlug = null;
 
@@ -152,9 +156,32 @@ class WebSocketController extends Controller implements MessageComponentInterfac
                 // block_from_room
                 $roleId = 100;
                 $roleSlug = 'block_from_room';
-                unset($this->userresources[$data->channel][$data->userId]);
+                if (is_null($roleId)) return;
+                if ($roleId == 1 && $user->user_level != 3) return;
+                $userBlocked = DB::table('block_users')->where([
+                    ['user_id', '=', $data->userId],
+                    ['role_id', '=', $roleId],
+                    ['room_id', '=', $data->roomId],
+                ]);
+                if ($userBlocked->exists()) {
+                    //user has role
+                    $this->userresources[$data->channel][$data->userId][$roleSlug] = false;
+                    $userBlocked->delete();
+                } else {
+                    $blockTime = (isset($data->blockTime)) ? $data->blockTime : 0;
+                    $blockUsers = new BlockUsers();
+                    $blockUsers->room_id = $data->roomId;
+                    $blockUsers->user_id = $data->userId;
+                    $blockUsers->role_id = $roleId;
+                    $blockUsers->blocker_id = $user->id;
+                    $blockUsers->block_until = $blockTime;
+
+                    $blockUsers->save();
+                    $this->userresources[$data->channel][$data->userId][$roleSlug] = true;
+                    unset($this->userresources[$data->channel][$data->userId]);
+                    $this->users[$data->userId]->close();
+                }
                 return;
-               // $this->users[$data->userId]->close();
                 break;
             case "3";
                 // change_color
@@ -172,48 +199,42 @@ class WebSocketController extends Controller implements MessageComponentInterfac
                 $roleSlug = 'active';
                 break;
         }
-        if (is_null($roleId))return;
-        if ($roleId == 1 && $user->user_level != 3)return;
-        if (!$user->can('is_room_supervisor') && !($user->user_level == 3))return;
+        if (is_null($roleId)) return;
+        if ($roleId == 1 && $user->user_level != 3) return;
+//        if (!$user->can('is_room_supervisor') && !($user->user_level == 3))return;
 
-        $userRole = DB::table('block_users')->where([
+        $userRole = DB::table('user_role_users')->where([
             ['user_id', '=', $data->userId],
             ['role_id', '=', $roleId],
-            ['room_id', '=', $data->roomId],
         ]);
-        if ($userRole->exists())
-        {
+        if ($userRole->exists()) {
             //user has role
-            $this->userresources[$data->channel][$data->userId][$roleSlug] = false;
-                $userRole->delete();
-
-        }
-        else
-        {
-
-            $blockTime = (isset($data->blockTime)) ? $data->blockTime : 0;
-            $blockUsers = new BlockUsers();
-            $blockUsers->room_id = $data->roomId;
-            $blockUsers->user_id = $data->userId;
-            $blockUsers->role_id = $roleId;
-            $blockUsers->blocker_id = $user->id;
-            $blockUsers->block_until = $blockTime;
-
-            $blockUsers->save();
+            $result['type'] = 'userSettings';
+            $result['data'] = '$userRole->exists()';
+            $conn->send(json_encode($result));
+            $userRole->delete();
             $this->userresources[$data->channel][$data->userId][$roleSlug] = true;
+        } else {
+            $addRole = DB::table('user_role_users')->insert([
+                ['user_id', '=', $data->userId],
+                ['role_id', '=', $roleId],]);
+            $result['type'] = 'userSettings';
+            $result['data'] = '$addRoleapp';
+            $conn->send(json_encode($result));
+            $this->userresources[$data->channel][$data->userId][$roleSlug] = false;
         }
-
-
 
 
         $result['type'] = 'userSettings';
         $result['data'] = 'تم تغيير الاعدادات بنجاح';
-
         $conn->send(json_encode($result));
     }
 
-    function subscribe($user, $data,ConnectionInterface $conn)
+    function subscribe($user, $data, ConnectionInterface $conn)
     {
+//        $result['type'] = 'userSettings';$result['data'] = 'function subscribe';$conn->send(json_encode($result));dd("stop");
+
+
         if ($user->is_block_from($data->roomId, 100))return;
 
         if (isset($user->id)) {
@@ -294,10 +315,11 @@ class WebSocketController extends Controller implements MessageComponentInterfac
 //            }
 //        }
     }
+
     /**
      * [onMessage description]
      * @method onMessage
-     * @param  ConnectionInterface $conn [description]
+     * @param ConnectionInterface $conn [description]
      * @param  [JSON.stringify]              $msg  [description]
      * @return [JSON]                    [description]
      * @example subscribe                conn.send(JSON.stringify({command: "subscribe", channel: "global"}));
@@ -307,6 +329,9 @@ class WebSocketController extends Controller implements MessageComponentInterfac
      */
     public function onMessage(ConnectionInterface $conn, $msg)
     {
+//        $result['type'] = 'userSettings';$result['data'] = 'function onMessage';$conn->send(json_encode($result));dd("stop");
+
+
         $user = $this->auth_user($conn);
         $userId = $user->id;
         $data = json_decode($msg);
@@ -361,14 +386,12 @@ class WebSocketController extends Controller implements MessageComponentInterfac
 
     public function onClose(ConnectionInterface $conn)
     {
-        echo $conn->resourceId .' is disconnected';
+        echo $conn->resourceId . ' is disconnected';
         foreach ($this->userresources as $key => $userData) {
 
-            foreach ($userData as $userId => $value)
-            {
-                if ($this->userresources[$key][$userId]['resourceId'] == $conn->resourceId)
-                {
-                    echo 'user id '.$userId.' is disconnected';
+            foreach ($userData as $userId => $value) {
+                if ($this->userresources[$key][$userId]['resourceId'] == $conn->resourceId) {
+                    echo 'user id ' . $userId . ' is disconnected';
                     $user = $this->userresources[$key][$userId];
                     $userData = $user;
                     $userData['id'] = $userId;

@@ -44,7 +44,7 @@ class CheckUserId
         {
 
             $adminUrl = $request->route()->parameter('id');
-            return redirect("$adminUrl/chatRoom");
+            return redirect("$adminUrl/rooms");
         }
 
         /*$adminUrl = $request->route()->parameter('id');

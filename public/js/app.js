@@ -38990,6 +38990,20 @@ Popper.Defaults = Defaults;
 
 /***/ }),
 
+/***/ "./node_modules/webpack/buildin/amd-define.js":
+/*!***************************************!*\
+  !*** (webpack)/buildin/amd-define.js ***!
+  \***************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = function() {
+	throw new Error("define cannot be used indirect");
+};
+
+
+/***/ }),
+
 /***/ "./node_modules/webpack/buildin/global.js":
 /*!***********************************!*\
   !*** (webpack)/buildin/global.js ***!
@@ -39065,9 +39079,9 @@ __webpack_require__(/*! ./bootstrap */ "./resources/js/bootstrap.js");
 
 var moment = __webpack_require__(/*! moment */ "./node_modules/moment/moment.js");
 
-moment.locale('ar'); // require('./moment.min');
+moment.locale('ar');
 
-/*require('./toastr.min');*/
+__webpack_require__(/*! ./toastr.min */ "./resources/js/toastr.min.js");
 
 var roomId = null;
 var isRoomsPressed = false;
@@ -39081,618 +39095,6 @@ var can_make_private_chat = $('meta[name=can_make_private_chat]').attr('content'
 var is_room_supervisor = $('meta[name=is_room_supervisor]').attr('content');
 var is_supervisor = $('meta[name=is_supervisor]').attr('content');
 var arr = []; // List of users	in popup
-
-/*console.log(typeof is_supervisor);
-console.log(typeof can_make_private_chat);*/
-
-var conn = new WebSocket('ws://127.0.0.1:8881');
-
-conn.onopen = function (e) {
-  console.log("onOpen");
-};
-
-conn.onclose = function (e) {
-  console.log("onClose");
-};
-
-conn.onerror = function (e) {
-  console.log("onError");
-};
-
-conn.onmessage = function (e) {
-  var data = JSON.parse(e.data);
-  var dataType = data.type; // console.log("onMessage " + dataType);
-
-  if (dataType === 'userSettings') {
-    $('#user_settings_model').modal({
-      show: false
-    });
-    toastr.success(data.data, 'تم', {
-      timeOut: 5000
-    });
-    return false;
-  }
-
-  if (dataType === 'room_messages') {
-    // console.log(JSON.parse(data.data));
-    // console.log(data);
-    onRoomMessage(JSON.parse(data.data));
-    return false;
-  }
-
-  if (dataType === 'room_chat') {
-    onRoomMessage(data, false);
-    return false;
-  }
-
-  if (dataType === 'room_users') {
-    // console.log(data.testData);
-    // console.log(data.data);
-    onRoomUsers(data.data);
-    return false;
-  }
-
-  if (dataType === 'subscribe_notif') {
-    //console.log(data.data);
-    onSubscribe(data);
-    return false;
-  }
-
-  if (dataType === 'un_subscribe_notif') {
-    onSubscribe(data, true);
-    return false;
-  }
-
-  if (dataType === 'privateMessage') {
-    privateMessage(data.data);
-    return false;
-  }
-};
-
-function privateMessage(_data) {
-  var userID = _data.userID;
-  var message = _data.message;
-  var username = _data.username;
-  var chatBox = $('[rel="user_' + userID + '"]');
-
-  if (chatBox.attr('rel') !== "user_" + userID) {
-    console.log('user presed: ' + userID);
-
-    if ($.inArray(userID, arr) != -1) {
-      arr.splice($.inArray(userID, arr), 1);
-    }
-
-    arr.unshift(userID);
-    chatPopup = '<div class="msg_box" style="right:310px" rel="user_' + userID + '">' + '<div class="msg_head">' + username + '<div class="close">x</div> </div>' + '<div class="msg_wrap"> <div class="msg_body">' + "<div class=\"msg-left\">".concat(message, "</div>") + '	<div class="msg_push"></div> </div>' + '<div class="msg_footer">' + '<div class="msg_input">\n' + '            <div class="wrap">\n' + '                    <input class="input_press" type="text" placeholder="إكتب...">\n' + '              \n' + '                <i class="fa fa-paperclip attachment" aria-hidden="true"></i>\n' + '                <button class="msg_input_submit"><i class="fa fa-paper-plane" aria-hidden="true"></i></button>\n' + '            </div>\n' + '        </div>' + '</div> 	</div> 	</div>';
-    $("body").append(chatPopup);
-    displayChatBox();
-  }
-
-  console.log('message: ' + message + ' from: ' + userID);
-  $(chatBox).find(".msg_body").append("<div class=\"msg-left\">".concat(message, "</div>"));
-}
-
-function onSubscribe(_data) {
-  var _isUnSubscribe = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-
-  if (_isUnSubscribe) {
-    var index = users.indexOf(_data.id);
-
-    if (index > -1) {
-      users.splice(index, 1);
-    }
-
-    $('#user_' + _data.id).remove();
-    return;
-  }
-
-  if (users.includes(_data.id)) {
-    return;
-  } else {
-    users.push(_data.id);
-  }
-
-  var i = _data.id;
-  var item = _data;
-  var cantWrite = item.cantWrite === true ? "إغلاق الكتم" : "كتم";
-  var cantChangeColor = item.cantChangeColor === true ? "السماح بتغيير لون الاسم" : "عدم السماح بتغيير لون الاسم";
-  var cantSendPrivateMessage = item.cantSendPrivateMessage === true ? "السماح بإرسال رسائل خاصة" : "عدم السماح بإرسال رسائل خاصة";
-  var display = isRoomsPressed === true ? "none" : "block"; // language=JQuery-CSS-HTML
-
-  /*let private_chat = "";
-  if (can_make_private_chat === "1" || is_supervisor === "1") {
-      private_chat = `<a class="dropdown-item private_chat" href="#">إرسال رسالة خاصة</a>`;
-  }
-  let room_supervisor = "";
-  if (is_room_supervisor === "1" || is_supervisor === "1") {
-      room_supervisor = `
-  <a class="dropdown-item my_modal_class block_message_send" href="#user_settings_model"  data-body="إختر مدة الكتم" data-title="إعدادات الكتم" data-role-id="1" data-user-id="${i}" data-room-id="${roomId}" data-toggle="modal">كتم</a>
-  <a class="dropdown-item my_modal_class block_from_room" href="#user_settings_model" data-body="إختر مدة الطرد" data-title="إعدادات الطرد" data-role-id="2" data-user-id="${i}" data-room-id="${roomId}" data-toggle="modal">طرد من الغرفة</a>
-  <a class="dropdown-item change_color"  id="${i}" href="#" >السماح بتغيير اللون</a>
-  <a class="dropdown-item private_message" id="${i}" href="#">عدم السماح بإرسال رسائل خاصة</a>`;
-   }
-  let supervisor = "";
-  if (is_supervisor === "1") {
-      supervisor = `<a class="dropdown-item stop_account" id="${i}" href="#" >إيقاف الحساب</a>`;
-   }*/
-  //alert(item.PageName);
-  // language=JQuery-CSS-HTML
-
-  $("#user_room_sec").append("<div class=\"dropdown users\" id=\"user_".concat(i, "\" style=\"display: ").concat(display, "\" >\n    <li class=\"dropdown-toggle contact\" type=\"li\" id=\"dropdownMenuButton\" data-toggle=\"dropdown\" aria-haspopup=\"true\"\n        aria-expanded=\"false\">\n\n        <div class=\"wrap\">\n            <span class=\"contact-status online\"></span>\n            <img style=\"height: 40px\"\n                 src=\"//previews.123rf.com/images/littleartvector/littleartvector1901/littleartvector190100024/126067615-interior-background-with-cozy-colorful-living-room-vector-illustration.jpg\"\n                 alt=\"\"/>\n            <div class=\"meta\">\n                <p class=\"name\">").concat(_data.nick_name, "</p>\n                <p class=\"preview\">\u0645\u062A\u0635\u0644</p>\n            </div>\n        </div>\n\n    </li>\n    <div style=\"margin-top: -26%;\" class=\"dropdown-menu\" aria-labelledby=\"dropdownMenuButton\">\n\n        ").concat(can_make_private_chat === "1" || is_supervisor === "1" ? "<a class=\"dropdown-item private_chat\" id=\"".concat(i, "\" href=\"#\">\u0625\u0631\u0633\u0627\u0644 \u0631\u0633\u0627\u0644\u0629 \u062E\u0627\u0635\u0629</a>") : "", "\n        ").concat(is_room_supervisor === "1" || is_supervisor === "1" ? "\n    <a class=\"dropdown-item my_modal_class block_message_send\" id=\"".concat(i, "\" href=\"#user_settings_model\"  data-body=\"\u0625\u062E\u062A\u0631 \u0645\u062F\u0629 \u0627\u0644\u0643\u062A\u0645\" data-title=\"\u0625\u0639\u062F\u0627\u062F\u0627\u062A \u0627\u0644\u0643\u062A\u0645\" data-role-id=\"1\" data-user-id=\"").concat(i, "\" data-room-id=\"").concat(roomId, "\" data-toggle=\"modal\">").concat(cantWrite, "</a>\n    <a class=\"dropdown-item my_modal_class block_from_room\" href=\"#user_settings_model\" data-body=\"\u0625\u062E\u062A\u0631 \u0645\u062F\u0629 \u0627\u0644\u0637\u0631\u062F\" data-title=\"\u0625\u0639\u062F\u0627\u062F\u0627\u062A \u0627\u0644\u0637\u0631\u062F\" data-role-id=\"2\" data-user-id=\"").concat(i, "\" data-room-id=\"").concat(roomId, "\" data-toggle=\"modal\">\u0637\u0631\u062F \u0645\u0646 \u0627\u0644\u063A\u0631\u0641\u0629</a>\n    <a class=\"dropdown-item change_color\"  id=\"").concat(i, "\" href=\"#\" >").concat(cantChangeColor, "</a>\n    <a class=\"dropdown-item private_message\" id=\"").concat(i, "\" href=\"#\">").concat(cantSendPrivateMessage, "</a>") : "", "\n        ").concat(is_supervisor === "1" ? supervisor = "<a class=\"dropdown-item stop_account\" id=\"".concat(i, "\" href=\"#\" >\u0625\u064A\u0642\u0627\u0641 \u0627\u0644\u062D\u0633\u0627\u0628</a>") : "", "\n    </div>\n</div>\n\n\n\n        "));
-  /*$("#user_room_sec").append(
-      `<div class="dropdown users" id="user_${i}" style="display: ${display}">
-  <li class="dropdown-toggle contact" type="li" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true"
-      aria-expanded="false">
-       <div class="wrap">
-          <span class="contact-status online"></span>
-          <img style="height: 40px"
-               src="//previews.123rf.com/images/littleartvector/littleartvector1901/littleartvector190100024/126067615-interior-background-with-cozy-colorful-living-room-vector-illustration.jpg"
-               alt=""/>
-          <div class="meta">
-              <p class="name">${_data.nick_name}</p>
-              <p class="preview">متصل</p>
-          </div>
-      </div>
-   </li>
-  <div style="margin-top: -26%;" class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-       ${private_chat}
-      ${room_supervisor}
-      ${supervisor}
-  </div>
-  </div>
-       `);*/
-
-  /* onClickAfterUserAppend()*/
-}
-
-function onRoomMessage(_data) {
-  var _onOpenRoom = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
-
-  if (!_onOpenRoom) {
-    // language=JQuery-CSS-HTML
-    console.log(_data);
-    $("#message_box").append("\n            <li class=\"replies\" >\n                <img src=\"http://emilcarlsson.se/assets/mikeross.png\" alt=\"\"/>\n                <span>\n                    <p class=\"name\" style=\" font-size: 75%; margin: -7px 0 7px 0; color:".concat(_data.name, "\"> ").concat(_data.nick_name, " </p>\n                    <p style=\"word-wrap: break-word;\">").concat(_data.message, "</p>\n                    <p class=\"message-time\" style=\" font-size: 75%; /* color: wheat; */ margin: 0 0 -5px 0; text-align: right; \">").concat(moment(_data.created_at).format('DD-MM-YYYY HH:mm:ss a'), "</p>\n                </span>\n            </li>"));
-    $(".messages").animate({
-      scrollTop: docHeight + 93
-    }, "fast");
-    docHeight += 93;
-    return;
-  }
-
-  $.each(_data, function (i, item) {
-    var className = "replies";
-
-    if (id === item.user_id + "".toString()) {
-      className = "sent";
-    } //alert(item.PageName);
-    // language=JQuery-CSS-HTML
-
-
-    $("#message_box").append("\n            <li class=\"".concat(className, "\">\n                <img src=\"http://emilcarlsson.se/assets/mikeross.png\" alt=\"\"/>\n                <span>\n                    <p class=\"name\" style=\" font-size: 75%; margin: -7px 0 7px 0; color:").concat(item.user.name, "\"> ").concat(item.user.nick_name, " </p>\n                    <p style=\"word-wrap: break-word;\">").concat(item.message, "</p>\n                    <p class=\"message-time\" style=\" font-size: 75%; /* color: wheat; */ margin: 0 0 -5px 0; text-align: right; \">").concat(moment(item.created_at).format('DD-MM-YYYY HH:mm:ss a'), "</p>\n                </span>\n            </li>"));
-    docHeight += 93;
-  });
-  $(".messages").animate({
-    scrollTop: docHeight + 93
-  }, "fast");
-}
-
-function onRoomUsers(_data) {
-  var _onOpenRoom = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
-
-  if (!_onOpenRoom) {
-    // language=JQuery-CSS-HTML
-    $("#user_room_sec").append("\n                    <li class=\"contact users\"  id=\"user_".concat(i, "\">\n\n                        <div class=\"wrap\">\n                            <span class=\"contact-status online\"></span>\n                            <img style=\"height: 40px\"\n                                 src=\"//previews.123rf.com/images/littleartvector/littleartvector1901/littleartvector190100024/126067615-interior-background-with-cozy-colorful-living-room-vector-illustration.jpg\"\n                                 alt=\"\"/>\n                            <div class=\"meta\">\n                                <p class=\"name\">").concat(item.userName, "</p>\n                                <p class=\"preview\">\u0645\u062A\u0635\u0644</p>\n                            </div>\n                        </div>\n                    </li>\n        "));
-  }
-
-  $.each(_data, function (i, item) {
-    console.log(i);
-    console.log(item);
-    console.log(users);
-    console.log(id);
-
-    if (users.includes(i)) {
-      return;
-    } else {
-      users.push(i);
-    }
-
-    if (id === i) {
-      if (item.cantWrite === true) {
-        $('.message-input .wrap').html("<input type=\"text\" placeholder=\"\u062A\u0645 \u062A\u0639\u0644\u064A\u0642\u0643 \u0645\u0646 \u0627\u0644\u0643\u062A\u0627\u0628\u0629 \u0645\u0624\u0642\u062A\u0627...\" readonly>");
-      }
-
-      if (item.cantChangeColor === true) {
-        $('#changeNameColorDiv').remove();
-      }
-
-      can_make_private_chat = !item.cantSendPrivateMessage;
-      return;
-    }
-
-    cantWrite = item.cantWrite === true ? "إغلاق الكتم" : "كتم";
-    cantChangeColor = item.cantChangeColor === true ? "السماح بتغيير لون الاسم" : "عدم السماح بتغيير لون الاسم";
-    cantSendPrivateMessage = item.cantSendPrivateMessage === true ? "السماح بإرسال رسائل خاصة" : "عدم السماح بإرسال رسائل خاصة";
-    display = isRoomsPressed === true ? "none" : "block";
-    /*let private_chat = "";
-    if (can_make_private_chat === "1" || is_supervisor === "1") {
-        private_chat = `<a class="dropdown-item private_chat" id="${i}" href="#">إرسال رسالة خاصة</a>`;
-    }*/
-    //     let room_supervisor = "";
-    //     if (is_room_supervisor === "1" || is_supervisor === "1") {
-    //         room_supervisor = `
-    // <a class="dropdown-item my_modal_class block_message_send" id="${i}" href="#user_settings_model"  data-body="إختر مدة الكتم" data-title="إعدادات الكتم" data-role-id="1" data-user-id="${i}" data-room-id="${roomId}" data-toggle="modal">${cantWrite}</a>
-    // <a class="dropdown-item my_modal_class block_from_room" href="#user_settings_model" data-body="إختر مدة الطرد" data-title="إعدادات الطرد" data-role-id="2" data-user-id="${i}" data-room-id="${roomId}" data-toggle="modal">طرد من الغرفة</a>
-    // <a class="dropdown-item change_color"  id="${i}" href="#" >${cantChangeColor}</a>
-    // <a class="dropdown-item private_message" id="${i}" href="#">${cantSendPrivateMessage}</a>`;
-    //
-    //     }
-    //     let supervisor = "";
-    //     if (is_supervisor === "1") {
-    //         supervisor = `<a class="dropdown-item stop_account" id="${i}" href="#" >إيقاف الحساب</a>`;
-    //
-    //     }
-    //alert(item.PageName);
-    // language=JQuery-CSS-HTML
-
-    $("#user_room_sec").append("<div class=\"dropdown users\" id=\"user_".concat(i, "\" style=\"display: ").concat(display, "\" >\n    <li class=\"dropdown-toggle contact\" type=\"li\" id=\"dropdownMenuButton\" data-toggle=\"dropdown\" aria-haspopup=\"true\"\n        aria-expanded=\"false\">\n\n        <div class=\"wrap\">\n            <span class=\"contact-status online\"></span>\n            <img style=\"height: 40px\"\n                 src=\"//previews.123rf.com/images/littleartvector/littleartvector1901/littleartvector190100024/126067615-interior-background-with-cozy-colorful-living-room-vector-illustration.jpg\"\n                 alt=\"\"/>\n            <div class=\"meta\">\n                <p class=\"name\">").concat(item.userName, "</p>\n                <p class=\"preview\">\u0645\u062A\u0635\u0644</p>\n            </div>\n        </div>\n\n    </li>\n    <div style=\"margin-top: -26%;\" class=\"dropdown-menu\" aria-labelledby=\"dropdownMenuButton\">\n\n        ").concat(can_make_private_chat === "1" || is_supervisor === "1" ? "<a class=\"dropdown-item private_chat\" id=\"".concat(i, "\" href=\"#\">\u0625\u0631\u0633\u0627\u0644 \u0631\u0633\u0627\u0644\u0629 \u062E\u0627\u0635\u0629</a>") : "", "\n        ").concat(is_room_supervisor === "1" || is_supervisor === "1" ? "\n    <a class=\"dropdown-item my_modal_class block_message_send\" id=\"".concat(i, "\" href=\"#user_settings_model\"  data-body=\"\u0625\u062E\u062A\u0631 \u0645\u062F\u0629 \u0627\u0644\u0643\u062A\u0645\" data-title=\"\u0625\u0639\u062F\u0627\u062F\u0627\u062A \u0627\u0644\u0643\u062A\u0645\" data-role-id=\"1\" data-user-id=\"").concat(i, "\" data-room-id=\"").concat(roomId, "\" data-toggle=\"modal\">").concat(cantWrite, "</a>\n    <a class=\"dropdown-item my_modal_class block_from_room\" href=\"#user_settings_model\" data-body=\"\u0625\u062E\u062A\u0631 \u0645\u062F\u0629 \u0627\u0644\u0637\u0631\u062F\" data-title=\"\u0625\u0639\u062F\u0627\u062F\u0627\u062A \u0627\u0644\u0637\u0631\u062F\" data-role-id=\"2\" data-user-id=\"").concat(i, "\" data-room-id=\"").concat(roomId, "\" data-toggle=\"modal\">\u0637\u0631\u062F \u0645\u0646 \u0627\u0644\u063A\u0631\u0641\u0629</a>\n    <a class=\"dropdown-item change_color\"  id=\"").concat(i, "\" href=\"#\" >").concat(cantChangeColor, "</a>\n    <a class=\"dropdown-item private_message\" id=\"").concat(i, "\" href=\"#\">").concat(cantSendPrivateMessage, "</a>") : "", "\n        ").concat(is_supervisor === "1" ? supervisor = "<a class=\"dropdown-item stop_account\" id=\"".concat(i, "\" href=\"#\" >\u0625\u064A\u0642\u0627\u0641 \u0627\u0644\u062D\u0633\u0627\u0628</a>") : "", "\n    </div>\n</div>\n\n\n\n        "));
-  });
-  onClickAfterUserAppend();
-  popup_chat();
-}
-
-$(document).ready(function () {
-  docHeight = $(document).height(); // console.log( "ready!" );
-
-  /*roomId = $(".room_id").first().html();
-  roomNumber = $(".room_number").first().html();
-  conn.send(JSON.stringify({command: "subscribe", channel: roomId, roomId: roomNumber}));*/
-  //console.log(roomId);
-});
-$(".rooms").click(function () {
-  $("#message_box").empty();
-  users = [];
-  $(".users").remove();
-  var roomName = $(this).find(".room_name").html();
-  var roomAvatar = $(this).find(".room_avatar").html();
-  $('#room_name').text(roomName);
-  $('#room_img').attr("src", roomAvatar);
-  roomId = $(this).find(".room_id").html();
-  console.log(roomId);
-  roomNumber = $(this).find(".room_number").html();
-  conn.send(JSON.stringify({
-    command: "subscribe",
-    channel: roomId,
-    roomId: roomNumber
-  })); //$("#status-options").toggleClass("active");
-});
-$("#profile-img").click(function () {
-  $("#status-options").toggleClass("active");
-});
-$(".expand-button").click(function () {
-  $("#profile").toggleClass("expanded");
-  $("#contacts").toggleClass("expanded");
-});
-$("#status-options ul li").click(function () {
-  $("#profile-img").removeClass();
-  $("#status-online").removeClass("active");
-  $("#status-away").removeClass("active");
-  $("#status-busy").removeClass("active");
-  $("#status-offline").removeClass("active");
-  $(this).addClass("active");
-
-  if ($("#status-online").hasClass("active")) {
-    $("#profile-img").addClass("online");
-  } else if ($("#status-away").hasClass("active")) {
-    $("#profile-img").addClass("away");
-  } else if ($("#status-busy").hasClass("active")) {
-    $("#profile-img").addClass("busy");
-  } else if ($("#status-offline").hasClass("active")) {
-    $("#profile-img").addClass("offline");
-  } else {
-    $("#profile-img").removeClass();
-  }
-
-  ;
-  $("#status-options").removeClass("active");
-});
-
-function newMessage() {
-  message = $(".message-input input").val();
-  name_color = $('meta[name=name_color]').attr('content'); // let msgTime = new Date().toLocaleString('ar-EG', { year:'numeric', month:'numeric', day:'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true });
-  // var date = today.getDate() + '-' + (today.getMonth() + 1) + '-' + today.getFullYear();
-  // var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-  // var dateTime = time + ' ' + date;
-  // let dateTime = today.toLocaleString('ar-EG', { year:'numeric', month:'numeric', day:'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true });
-
-  if ($.trim(message) == '') {
-    return false;
-  }
-
-  $("#message_box").append("\n        <li class=\"sent\" >\n\n\n            <img src=\"http://emilcarlsson.se/assets/mikeross.png\" alt=\"\"/>\n                    \n\n            <span>\n                <p class=\"name\" style=\" font-size: 75%; margin: -7px 0 7px 0; color:".concat(name_color, "\"> ").concat(nick_name, " </p>\n                <p style=\"word-wrap: break-word;\">\n                  \n                    ").concat(message, "\n                    </p>\n                <p class=\"message-time\" style=\"\n    font-size: 75%;\n    /* color: wheat; */\n    margin: 0 0 -5px 0;\n    text-align: right;\n\">").concat(moment().format('DD-MM-YYYY HH:mm:ss a'), "</p>\n            </span>\n\n        </li>"));
-  $('.message-input input').val(null);
-  $('.contact.active .preview').html('<span>You: </span>' + message);
-  $(".messages").animate({
-    scrollTop: docHeight + 93
-  }, "fast");
-  docHeight += 93;
-  conn.send(JSON.stringify({
-    command: "groupchat",
-    message: message,
-    channel: roomId,
-    roomId: roomNumber
-  }));
-}
-
-$('.submit').click(function () {
-  newMessage();
-});
-$(window).on('keydown', function (e) {
-  if (e.which == 13) {
-    newMessage();
-    return false;
-  }
-});
-$('.Button').click(function (e) {
-  $('.Button').not(this).removeClass('active');
-  $(this).toggleClass('active');
-  e.preventDefault();
-});
-$('#rooms').click(function (e) {
-  isRoomsPressed = true;
-  console.log('rooms cliced');
-  $('.rooms').show();
-  $('.users').hide();
-  $('#edit-form').hide();
-  $('#search').show();
-});
-$('#users').click(function (e) {
-  isRoomsPressed = false;
-  console.log('users cliced');
-  $('.rooms').hide();
-  $('.users').show();
-  $('#edit-form').hide();
-  $('#search').show();
-});
-$('#settings').click(function (e) {
-  console.log('users cliced');
-  $('.rooms').hide();
-  $('.users').hide();
-  $('#edit-form').show();
-  $('#search').hide();
-});
-$(window).on('load', function () {
-  $('#myModal').modal({
-    backdrop: false
-  });
-  $('#frame').show();
-});
-$('#user_settings_model').on('show.bs.modal', function (e) {
-  //get data-id attribute of the clicked element
-  var userId = $(e.relatedTarget).data('user-id'); //let roomId = $(e.relatedTarget).data('room-id');
-
-  var roleId = $(e.relatedTarget).data('role-id');
-  var title = $(e.relatedTarget).data('title');
-  var body = $(e.relatedTarget).data('body'); //populate the textbox
-
-  $(e.currentTarget).find('input[name="userId"]').val(userId);
-  $(e.currentTarget).find('input[name="roomId"]').val(roomNumber);
-  $(e.currentTarget).find('input[name="roleId"]').val(roleId);
-  $(e.currentTarget).find('#title').html(title);
-  $(e.currentTarget).find('#body').html(body);
-});
-$('#user_settings_edit_form').submit(function (e) {
-  e.preventDefault();
-  var data = $('#user_settings_edit_form').serializeArray();
-  var userId = data[0]['value'];
-  console.log(userId);
-
-  switch (data[2]['value']) {
-    case '1':
-      text = $('#user_' + userId).find('.block_message_send').html();
-
-      if (text === 'كتم') {
-        $('#user_' + data[0]['value']).find('.block_message_send').html('إغلاق الكتم');
-        $('#user_' + data[0]['value']).find('.block_message_send').attr('href', '#');
-      } else {
-        $('#user_' + data[0]['value']).find('.block_message_send').html('كتم');
-      }
-
-      break;
-
-    case '2':
-      $('#user_' + userId).remove();
-      break;
-  }
-
-  $('#user_settings_model').modal('hide');
-  ;
-  conn.send(JSON.stringify({
-    command: "userSettings",
-    userId: userId,
-    roleId: data[2]['value'],
-    blockTime: data[3]['value'],
-    channel: roomId,
-    roomId: roomNumber
-  }));
-});
-
-function newMessagePopup(_this) {
-  var message = $(_this).find(".input_press").val();
-
-  if ($.trim(message) == '') {
-    return false;
-  }
-
-  var userIdRecever = $(_this).attr('rel').replace('user_', '');
-  console.log('message: ' + message + 'to: ' + userIdRecever + ' from: ' + id);
-  conn.send(JSON.stringify({
-    command: "privateMessage",
-    roomId: roomId,
-    to: userIdRecever,
-    message: message
-  }));
-  $(_this).find(".msg_body").append("<div class=\"msg-right\">".concat(message, "</div>"));
-  $(_this).find('.input_press').val(null); // $('.contact.active .preview').html('<span>You: </span>' + message);
-  //
-  // $(".messages").animate({scrollTop: docHeight + 93}, "fast");
-  //
-  // docHeight += 93;
-  //
-  // conn.send(JSON.stringify({command: "groupchat", message: message, channel: roomId, roomId: roomNumber}));
-}
-
-function onclick() {
-  /*$('.msg_input_submit').click(function () {
-      newMessagePopup();
-  });*/
-  $('.msg_box').on('keydown', function (e) {
-    if (e.which == 13) {
-      newMessagePopup(this);
-      return false;
-    }
-  });
-}
-/*$('.input_press').keypress(
-    function(e){
-
-        if (e.keyCode == 13) {
-            //var msg = $(this).val();
-            let msg = $(".msg_input input").val();
-            $(this).val('');
-            if(msg.trim().length != 0){
-                var chatbox = $(this).parents().parents().parents().attr("rel") ;
-                $('<div class="msg-right">'+msg+'</div>').insertBefore('[rel="'+chatbox+'"] .msg_push');
-                $('.msg_body').scrollTop($('.msg_body')[0].scrollHeight);
-            }
-        }
-    });*/
-
-
-function displayChatBox() {
-  i = 270; // start position
-
-  j = 260; //next position
-
-  $.each(arr, function (index, value) {
-    if (index < 4) {
-      $('[rel="' + value + '"]').css("right", i);
-      $('[rel="' + value + '"]').show();
-      i = i + j;
-    } else {
-      $('[rel="' + value + '"]').hide();
-    }
-  });
-  onclick();
-}
-
-function onClickAfterUserAppend() {
-  $(".block_message_send").click(function () {
-    if ($(this).html() !== 'كتم') {
-      $(this).attr('href', '#user_settings_model');
-      $(this).html('كتم');
-      var userId = $(this).attr('id');
-      console.log(userId);
-      conn.send(JSON.stringify({
-        command: "userSettings",
-        userId: userId,
-        roleId: 1,
-        channel: roomId,
-        roomId: roomNumber
-      }));
-      return false;
-    } //$("#status-options").toggleClass("active");
-
-  });
-  $(".change_color").click(function () {
-    var userId = $(this).attr('id');
-    console.log(userId);
-    conn.send(JSON.stringify({
-      command: "userSettings",
-      userId: userId,
-      roleId: 3,
-      channel: roomId,
-      roomId: roomNumber
-    })); //$("#status-options").toggleClass("active");
-  });
-  $(".private_message").click(function () {
-    var userId = $(this).attr('id');
-    console.log(userId);
-    conn.send(JSON.stringify({
-      command: "userSettings",
-      userId: userId,
-      roleId: 4,
-      channel: roomId,
-      roomId: roomNumber
-    })); //$("#status-options").toggleClass("active");
-  });
-  $(".stop_account").click(function () {
-    var userId = $(this).attr('id');
-    console.log(userId);
-    conn.send(JSON.stringify({
-      command: "userSettings",
-      userId: userId,
-      roleId: 5,
-      channel: roomId,
-      roomId: roomNumber
-    })); //$("#status-options").toggleClass("active");
-  });
-}
-
-function popup_chat() {
-  console.log('ready!');
-  $(document).on('click', '.msg_head', function () {
-    var chatbox = $(this).parents().attr("rel");
-    $('[rel="' + chatbox + '"] .msg_wrap').slideToggle('slow');
-    return false;
-  });
-  $(document).on('click', '.close', function () {
-    var chatbox = $(this).parents().parents().attr("rel");
-    $('[rel="' + chatbox + '"]').hide();
-    arr.splice($.inArray(chatbox, arr), 1);
-    displayChatBox();
-    return false;
-  });
-  $(".users").click(function () {
-    var userID = $(this).attr("id");
-    var username = $(this).find(".name").html();
-    $(this).find(".private_chat").click(function () {
-      console.log('user presed: ' + userID);
-
-      if ($.inArray(userID, arr) != -1) {
-        arr.splice($.inArray(userID, arr), 1);
-      }
-      /*<div class="msg_input">
-          <div class="wrap">
-                  <input type="text" placeholder="إكتب...">
-               <i class="fa fa-paperclip attachment" aria-hidden="true"></i>
-              <button class="submit"><i class="fa fa-paper-plane" aria-hidden="true"></i></button>
-          </div>
-      </div>*/
-
-
-      arr.unshift(userID);
-      chatPopup = '<div class="msg_box" style="right:310px" rel="' + userID + '">' + '<div class="msg_head">' + username + '<div class="close">x</div> </div>' + '<div class="msg_wrap"> <div class="msg_body">	<div class="msg_push"></div> </div>' + '<div class="msg_footer">' + '<div class="msg_input">\n' + '            <div class="wrap">\n' + '                    <input class="input_press" type="text" placeholder="إكتب...">\n' + '              \n' + '                <i class="fa fa-paperclip attachment" aria-hidden="true"></i>\n' + '                <button class="msg_input_submit"><i class="fa fa-paper-plane" aria-hidden="true"></i></button>\n' + '            </div>\n' + '        </div>' + '</div> 	</div> 	</div>';
-      $("body").append(chatPopup);
-      displayChatBox();
-    });
-  });
-  /*$(document).on('click', '#user_box', function() {
-    var userID = $(this).attr("id").split(' ')[0];
-   var username = $(this).children().text() ;
-    if ($.inArray(userID, arr) != -1)
-   {
-    arr.splice($.inArray(userID, arr), 1);
-   }
-    arr.unshift(userID);
-   chatPopup =  '<div class="msg_box" style="right:270px" rel="'+ userID+'">'+
-                  '<div class="msg_head">'+username +
-                  '<div class="close">x</div> </div>'+
-                  '<div class="msg_wrap"> <div class="msg_body">	<div class="msg_push"></div> </div>'+
-                  '<div class="msg_footer"><textarea class="msg_input" rows="4"></textarea></div> 	</div> 	</div>' ;
-    $("body").append(  chatPopup  );
-   displayChatBox();
-  });*/
-}
 
 /***/ }),
 
@@ -39738,6 +39140,319 @@ try {
 //     cluster: process.env.MIX_PUSHER_APP_CLUSTER,
 //     encrypted: true
 // });
+
+/***/ }),
+
+/***/ "./resources/js/toastr.min.js":
+/*!************************************!*\
+  !*** ./resources/js/toastr.min.js ***!
+  \************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!function (e) {
+  !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js")], __WEBPACK_AMD_DEFINE_RESULT__ = (function (e) {
+    return function () {
+      function t(e, t, n) {
+        return g({
+          type: O.error,
+          iconClass: m().iconClasses.error,
+          message: e,
+          optionsOverride: n,
+          title: t
+        });
+      }
+
+      function n(t, n) {
+        return t || (t = m()), v = e("#" + t.containerId), v.length ? v : (n && (v = d(t)), v);
+      }
+
+      function o(e, t, n) {
+        return g({
+          type: O.info,
+          iconClass: m().iconClasses.info,
+          message: e,
+          optionsOverride: n,
+          title: t
+        });
+      }
+
+      function s(e) {
+        C = e;
+      }
+
+      function i(e, t, n) {
+        return g({
+          type: O.success,
+          iconClass: m().iconClasses.success,
+          message: e,
+          optionsOverride: n,
+          title: t
+        });
+      }
+
+      function a(e, t, n) {
+        return g({
+          type: O.warning,
+          iconClass: m().iconClasses.warning,
+          message: e,
+          optionsOverride: n,
+          title: t
+        });
+      }
+
+      function r(e, t) {
+        var o = m();
+        v || n(o), u(e, o, t) || l(o);
+      }
+
+      function c(t) {
+        var o = m();
+        return v || n(o), t && 0 === e(":focus", t).length ? void h(t) : void (v.children().length && v.remove());
+      }
+
+      function l(t) {
+        for (var n = v.children(), o = n.length - 1; o >= 0; o--) {
+          u(e(n[o]), t);
+        }
+      }
+
+      function u(t, n, o) {
+        var s = !(!o || !o.force) && o.force;
+        return !(!t || !s && 0 !== e(":focus", t).length) && (t[n.hideMethod]({
+          duration: n.hideDuration,
+          easing: n.hideEasing,
+          complete: function complete() {
+            h(t);
+          }
+        }), !0);
+      }
+
+      function d(t) {
+        return v = e("<div/>").attr("id", t.containerId).addClass(t.positionClass), v.appendTo(e(t.target)), v;
+      }
+
+      function p() {
+        return {
+          tapToDismiss: !0,
+          toastClass: "toast",
+          containerId: "toast-container",
+          debug: !1,
+          showMethod: "fadeIn",
+          showDuration: 300,
+          showEasing: "swing",
+          onShown: void 0,
+          hideMethod: "fadeOut",
+          hideDuration: 1e3,
+          hideEasing: "swing",
+          onHidden: void 0,
+          closeMethod: !1,
+          closeDuration: !1,
+          closeEasing: !1,
+          closeOnHover: !0,
+          extendedTimeOut: 1e3,
+          iconClasses: {
+            error: "toast-error",
+            info: "toast-info",
+            success: "toast-success",
+            warning: "toast-warning"
+          },
+          iconClass: "toast-info",
+          positionClass: "toast-top-right",
+          timeOut: 5e3,
+          titleClass: "toast-title",
+          messageClass: "toast-message",
+          escapeHtml: !1,
+          target: "body",
+          closeHtml: '<button type="button">&times;</button>',
+          closeClass: "toast-close-button",
+          newestOnTop: !0,
+          preventDuplicates: !1,
+          progressBar: !1,
+          progressClass: "toast-progress",
+          rtl: !1
+        };
+      }
+
+      function f(e) {
+        C && C(e);
+      }
+
+      function g(t) {
+        function o(e) {
+          return null == e && (e = ""), e.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/'/g, "&#39;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        function s() {
+          c(), u(), d(), p(), g(), C(), l(), i();
+        }
+
+        function i() {
+          var e = "";
+
+          switch (t.iconClass) {
+            case "toast-success":
+            case "toast-info":
+              e = "polite";
+              break;
+
+            default:
+              e = "assertive";
+          }
+
+          I.attr("aria-live", e);
+        }
+
+        function a() {
+          E.closeOnHover && I.hover(H, D), !E.onclick && E.tapToDismiss && I.click(b), E.closeButton && j && j.click(function (e) {
+            e.stopPropagation ? e.stopPropagation() : void 0 !== e.cancelBubble && e.cancelBubble !== !0 && (e.cancelBubble = !0), E.onCloseClick && E.onCloseClick(e), b(!0);
+          }), E.onclick && I.click(function (e) {
+            E.onclick(e), b();
+          });
+        }
+
+        function r() {
+          I.hide(), I[E.showMethod]({
+            duration: E.showDuration,
+            easing: E.showEasing,
+            complete: E.onShown
+          }), E.timeOut > 0 && (k = setTimeout(b, E.timeOut), F.maxHideTime = parseFloat(E.timeOut), F.hideEta = new Date().getTime() + F.maxHideTime, E.progressBar && (F.intervalId = setInterval(x, 10)));
+        }
+
+        function c() {
+          t.iconClass && I.addClass(E.toastClass).addClass(y);
+        }
+
+        function l() {
+          E.newestOnTop ? v.prepend(I) : v.append(I);
+        }
+
+        function u() {
+          if (t.title) {
+            var e = t.title;
+            E.escapeHtml && (e = o(t.title)), M.append(e).addClass(E.titleClass), I.append(M);
+          }
+        }
+
+        function d() {
+          if (t.message) {
+            var e = t.message;
+            E.escapeHtml && (e = o(t.message)), B.append(e).addClass(E.messageClass), I.append(B);
+          }
+        }
+
+        function p() {
+          E.closeButton && (j.addClass(E.closeClass).attr("role", "button"), I.prepend(j));
+        }
+
+        function g() {
+          E.progressBar && (q.addClass(E.progressClass), I.prepend(q));
+        }
+
+        function C() {
+          E.rtl && I.addClass("rtl");
+        }
+
+        function O(e, t) {
+          if (e.preventDuplicates) {
+            if (t.message === w) return !0;
+            w = t.message;
+          }
+
+          return !1;
+        }
+
+        function b(t) {
+          var n = t && E.closeMethod !== !1 ? E.closeMethod : E.hideMethod,
+              o = t && E.closeDuration !== !1 ? E.closeDuration : E.hideDuration,
+              s = t && E.closeEasing !== !1 ? E.closeEasing : E.hideEasing;
+          if (!e(":focus", I).length || t) return clearTimeout(F.intervalId), I[n]({
+            duration: o,
+            easing: s,
+            complete: function complete() {
+              h(I), clearTimeout(k), E.onHidden && "hidden" !== P.state && E.onHidden(), P.state = "hidden", P.endTime = new Date(), f(P);
+            }
+          });
+        }
+
+        function D() {
+          (E.timeOut > 0 || E.extendedTimeOut > 0) && (k = setTimeout(b, E.extendedTimeOut), F.maxHideTime = parseFloat(E.extendedTimeOut), F.hideEta = new Date().getTime() + F.maxHideTime);
+        }
+
+        function H() {
+          clearTimeout(k), F.hideEta = 0, I.stop(!0, !0)[E.showMethod]({
+            duration: E.showDuration,
+            easing: E.showEasing
+          });
+        }
+
+        function x() {
+          var e = (F.hideEta - new Date().getTime()) / F.maxHideTime * 100;
+          q.width(e + "%");
+        }
+
+        var E = m(),
+            y = t.iconClass || E.iconClass;
+
+        if ("undefined" != typeof t.optionsOverride && (E = e.extend(E, t.optionsOverride), y = t.optionsOverride.iconClass || y), !O(E, t)) {
+          T++, v = n(E, !0);
+          var k = null,
+              I = e("<div/>"),
+              M = e("<div/>"),
+              B = e("<div/>"),
+              q = e("<div/>"),
+              j = e(E.closeHtml),
+              F = {
+            intervalId: null,
+            hideEta: null,
+            maxHideTime: null
+          },
+              P = {
+            toastId: T,
+            state: "visible",
+            startTime: new Date(),
+            options: E,
+            map: t
+          };
+          return s(), r(), a(), f(P), E.debug && console && console.log(P), I;
+        }
+      }
+
+      function m() {
+        return e.extend({}, p(), b.options);
+      }
+
+      function h(e) {
+        v || (v = n()), e.is(":visible") || (e.remove(), e = null, 0 === v.children().length && (v.remove(), w = void 0));
+      }
+
+      var v,
+          C,
+          w,
+          T = 0,
+          O = {
+        error: "error",
+        info: "info",
+        success: "success",
+        warning: "warning"
+      },
+          b = {
+        clear: r,
+        remove: c,
+        error: t,
+        getContainer: n,
+        info: o,
+        options: {},
+        subscribe: s,
+        success: i,
+        version: "2.1.3",
+        warning: a
+      };
+      return b;
+    }();
+  }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+}(__webpack_require__(/*! !webpack amd define */ "./node_modules/webpack/buildin/amd-define.js"));
 
 /***/ }),
 
