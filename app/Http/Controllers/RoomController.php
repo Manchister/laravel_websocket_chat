@@ -168,10 +168,6 @@ class RoomController extends Controller
 
         $room = Room::find($room);
         $room_users = $room->roomUsers();
-//        dd($room_users);
-//        dd($room->id);
-//        dd($online_users);
-//        $last_200_msg =
 
         return view('room.single', ['id' => $id, 'rooms' => $rooms, 'room' => $room, 'supervisor' => $created_by, 'room_users' => $room_users]);
     }
@@ -233,17 +229,31 @@ class RoomController extends Controller
         $this->middleware(['auth']);
         return $this->newPrivateChatUsers($request->room_id);
     }
+
     private function newPrivateChatUsers($room_id)
     {
-        return DB::table('private_messages')->where(['private_messages.receiver_id' => Auth::id(), 'private_messages.is_seen' => 0])
-            ->join('users', 'private_messages.user_id', '=', 'users.id')
-            ->get(['user_id','users.nick_name','private_messages.conversation_id'])->unique()->toArray();
+        $query = DB::table('private_messages')->where(['private_messages.receiver_id' => Auth::id(), 'private_messages.is_seen' => 0]);
+        if($query->exists()){
+            return $query->join('users', 'private_messages.user_id', '=', 'users.id')
+                ->get(['user_id', 'users.nick_name', 'private_messages.conversation_id'])->unique()->toArray();
+        } else {
+            return false;
+        }
+//        return DB::table('private_messages')->where(['private_messages.receiver_id' => Auth::id(), 'private_messages.is_seen' => 0])
+//            ->join('users', 'private_messages.user_id', '=', 'users.id')
+//            ->get(['user_id', 'users.nick_name', 'private_messages.conversation_id'])->unique()->toArray();
+    }
+
+    public function setSeen(Request $request)
+    {
+        return Conversations::find($request->conversation_id)->allMessages()->where(['receiver_id'=>Auth::id()])->update(['is_seen'=>1])
+            ? ['status'=>'success'] : ['status'=>'error'];
     }
 
     public function loadConversation(Request $request)
     {
         $this->middleware(['auth']);
-        $conversation =  Conversations::find($request->conversation_id);
+        $conversation = Conversations::find($request->conversation_id);
         return $conversation->messages()->get()->reverse()->values();
     }
 
@@ -251,9 +261,8 @@ class RoomController extends Controller
     public function getConversationId(Request $request)
     {
         $this->middleware(['auth']);
-        return  Conversations::getId(Auth::id(),$request->user_id);
+        return Conversations::getId(Auth::id(), $request->user_id);
     }
-
 
 
     public function receivePrivateMessage(Request $request)
@@ -261,6 +270,7 @@ class RoomController extends Controller
         $this->middleware(['auth']);
         return $this->retrievePrivateMessage($request->room_id);
     }
+
     private function retrievePrivateMessage($room_id)
     {
         $messages = DB::table('private_messages')->where(['private_messages.receiver_id' => Auth::id(), 'private_messages.is_seen' => 0])

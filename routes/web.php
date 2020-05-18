@@ -32,6 +32,7 @@ Route::post('/send_private_message', 'RoomController@sendPrivateMessage')->name(
 Route::post('/check_new_private_chat', 'RoomController@checkNewPrivateChat')->name('check_new_private_chat');
 Route::post('/load_conversation', 'RoomController@loadConversation')->name('load_conversation');
 Route::post('/get_conversation_id', 'RoomController@getConversationId')->name('get_conversation_id');
+Route::post('/set_seen', 'RoomController@setSeen')->name('set_seen');
 
 
 

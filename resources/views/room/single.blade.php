@@ -406,10 +406,6 @@
 </script>
 
 <script>
-    /*  */
-</script>
-
-<script>
     /* Side Panel Changes */
     function toggleRoomsAndUsers(type) {
         switch (type) {
@@ -427,14 +423,11 @@
     $('#edit-form').submit(function (e) {
         e.preventDefault();
         let formData = $("#edit-form").serialize();
-        // console.log(formData.toArray());
         $.ajax({
             type: "post",
             url: '{{ url("$id/chatRoom")}}/{{auth()->user()->id}}',
             data: formData,
             success: function (store) {
-                // alert(store.message);
-                // console.log(store.name_color);
                 toastr.success(store.message, 'تم', {timeOut: 5000});
                 $('#settingsModal').modal('toggle');
                 $('li.sent p.name').css('color', store.name_color);
@@ -467,7 +460,6 @@
             success: function (response) {
                 if (response.status === "success") {
                     buildUserDropdownActions(user_id, response.items);
-                    // toastr.success("تم التعديل بنجاح", 'تم', {timeOut: 5000});
                 } else if (response.status === "error") {
                     toastr.error('حاول لاحقا', 'خطأ', {timeOut: 5000});
                 }
@@ -488,7 +480,6 @@
     function startPrivateChat(_this) {
         let user_id = _this.data('user_id')
         let username = _this.data('username')
-        // console.log(username);
         if ($.inArray(user_id, usersArr) != -1) {
             usersArr.splice($.inArray(user_id, usersArr), 1);
         }
@@ -509,7 +500,6 @@
         $("body").append(chatPopup);
         displayChatBox();
 
-
         let conversation = new Promise(function (resolve, reject) {
             let cId = getConversationId(user_id)
             if (cId != false) {
@@ -518,9 +508,7 @@
                 reject();
             }
         });
-
         conversation.then(function (result) {
-            // console.log(result);
             loadConversation(result, user_id);
         }).catch(function () {
             console.log('no old messages');
@@ -545,13 +533,9 @@
     }
 
     $(document).on('click', '.msg_head', function () {
-        // console.log('box clicked')
         let chatBox = $(this).parents().attr("rel");
-        // console.log(chatBox)
         let currentChatBox = $('[rel="' + chatBox + '"] .msg_wrap');
-        // console.log(currentChatBox)
         currentChatBox.slideToggle();
-        // console.log(currentChatBox)
         return false;
     });
 
@@ -573,6 +557,32 @@
             if (e.which == 13) {
                 newMessagePopup(this);
                 return false;
+            }
+        });
+
+        $('.msg_box').on('mouseover', function (e) {
+            // console.log($(this).data('conversation_id'));
+            setSeen($(this));
+        });
+    }
+
+    function setSeen(conversation) {
+        conversation.off('mouseover');
+        let _conversation_id = conversation.data('conversation_id')
+        let _data = {
+            conversation_id: _conversation_id,
+        }
+        let _url = `{{route('set_seen')}}`;
+        $.ajaxSetup({headers: {'X-CSRF-Token': _token}});
+        $.ajax({
+            url: _url,
+            method: 'POST',
+            dataType: 'json',
+            data: _data,
+            cache: false,
+            success: function (response) {
+                // console.log(conversation);
+                if(response.status == 'success') conversation.off('mouseover');
             }
         });
     }
@@ -606,17 +616,16 @@
         });
     }
 
-    function appendPrivateMessage(message, _this, type=1) {
-        if(type == 1){
+    function appendPrivateMessage(message, _this, type = 1) {
+        if (type == 1) {
             $(_this).find(".msg_body").append(`<div class="msg-right">${message}</div>`);
-        } else if(type==2) {
+        } else if (type == 2) {
             $(_this).find(".msg_body").append(`<div class="msg-left">${message}</div>`);
         }
 
         $(_this).find(".msg_body").scrollTop($(_this).find(".msg_body").height());
     }
 
-    checkNewPrivateChat()
 
     /* Return Users[] if Users Chatting Me or [] */
     function checkNewPrivateChat() {
@@ -632,108 +641,17 @@
             data: _data,
             cache: false,
             success: function (response) {
-                // console.log(response)
-                receivePrivateChat(response)
+                if(response!==false) return receivePrivateChat(response)
             }
         });
     }
-
-    async function getConversationId(user_id) {
-        let conversation_id =false;
-        let _data = {
-            user_id: user_id,
-        }
-        let _url = `{{route('get_conversation_id')}}`;
-        $.ajaxSetup({headers: {'X-CSRF-Token': _token}});
-        await $.ajax({
-            url: _url,
-            method: 'POST',
-            dataType: 'json',
-            data: _data,
-            cache: false,
-            success: function (response) {
-                // console.log(response)
-                conversation_id= response;
-            }
-        });
-        // console.log(conversation_id)
-        return conversation_id;
-    }
-    function loadConversation(conversation_id,user_id) {
-        let _data = {
-            conversation_id: conversation_id,
-        }
-        let _url = `{{route('load_conversation')}}`;
-        $.ajaxSetup({headers: {'X-CSRF-Token': _token}});
-        $.ajax({
-            url: _url,
-            method: 'POST',
-            dataType: 'json',
-            data: _data,
-            cache: false,
-            success: function (response) {
-                // console.log(response)
-                let chatBox = $(`#${user_id}.msg_box`);
-                // let msgBody = chatBox.find(".msg_body");
-                // console.log(chatBox);
-                appendConversationMessages(chatBox,response)
-            }
-        });
-    }
-
-    function appendConversationMessages(chatBox,response) {
-        $.each(response, function (index, value) {
-            console.log(value)
-            if(value.user_id == current_user){
-                appendPrivateMessage(value.message,chatBox,1);
-            } else {
-                appendPrivateMessage(value.message,chatBox,2);
-            }
-        });
-    }
-
-
-
-    function receivePrivateMessages() {
-        let _data = {
-            room_id: room_id,
-        }
-        let _url = `{{route('receive_private_messages')}}`;
-        $.ajaxSetup({headers: {'X-CSRF-Token': _token}});
-        $.ajax({
-            url: _url,
-            method: 'POST',
-            dataType: 'json',
-            data: _data,
-            cache: false,
-            success: function (response) {
-                // console.log(response)
-                receivePrivateChat(response);
-            }
-        });
-    }
-
-    // console.log(usersArr);
 
     function receivePrivateChat(_conversations) {
-        // let grouped = groupBy('conversations_id');
-        // console.log(JSON.stringify({sendersByUserId: sendersByUserId(_senders)}, null, 2));
-        // let senders = JSON.stringify({sendersByUserId: sendersByUserId(_senders)}, null, 2);
-        // let senders = grouped(_senders);
-        // console.log(sendersByUserId(_senders));
         $.each(_conversations, function (index, value) {
-            // console.log('index')
-            // console.log(index)
-            // console.log('value')
-            // console.log(value)
 
             let conversation_id = value.conversation_id;
             let user_id = value.user_id;
             let username = value.nick_name;
-            // let messages = ``;
-            // $.each(value, function (index_, value_) {
-            //     messages += `<div class='msg-left'>${value_.message}</div>`;
-            // });
 
             if ($.inArray(user_id, usersArr) != -1) {
                 usersArr.splice($.inArray(user_id, usersArr), 1);
@@ -753,8 +671,79 @@
                 '</div> 	</div> 	</div>';
 
             $("body").append(chatPopup);
-            loadConversation(conversation_id,user_id);
+            loadConversation(conversation_id, user_id);
             addEventListeners();
+        });
+    }
+
+    function loadConversation(conversation_id, user_id) {
+        let _data = {
+            conversation_id: conversation_id,
+        }
+        let _url = `{{route('load_conversation')}}`;
+        $.ajaxSetup({headers: {'X-CSRF-Token': _token}});
+        $.ajax({
+            url: _url,
+            method: 'POST',
+            dataType: 'json',
+            data: _data,
+            cache: false,
+            success: function (response) {
+                let chatBox = $(`#${user_id}.msg_box`);
+                chatBox.attr('data-conversation_id',conversation_id);
+                appendConversationMessages(chatBox, response)
+            }
+        });
+    }
+
+    function appendConversationMessages(chatBox, response) {
+        $.each(response, function (index, value) {
+            // console.log(value)
+            if (value.user_id == current_user) {
+                appendPrivateMessage(value.message, chatBox, 1);
+            } else {
+                appendPrivateMessage(value.message, chatBox, 2);
+            }
+        });
+    }
+
+    async function getConversationId(user_id) {
+        let conversation_id = false;
+        let _data = {
+            user_id: user_id,
+        }
+        let _url = `{{route('get_conversation_id')}}`;
+        $.ajaxSetup({headers: {'X-CSRF-Token': _token}});
+        await $.ajax({
+            url: _url,
+            method: 'POST',
+            dataType: 'json',
+            data: _data,
+            cache: false,
+            success: function (response) {
+                conversation_id = response;
+            }
+        });
+        return conversation_id;
+    }
+
+
+    function receivePrivateMessages() {
+        let _data = {
+            room_id: room_id,
+        }
+        let _url = `{{route('receive_private_messages')}}`;
+        $.ajaxSetup({headers: {'X-CSRF-Token': _token}});
+        $.ajax({
+            url: _url,
+            method: 'POST',
+            dataType: 'json',
+            data: _data,
+            cache: false,
+            success: function (response) {
+                // console.log(response)
+                receivePrivateChat(response);
+            }
         });
     }
 
@@ -781,11 +770,6 @@
             objectsByKeyValue[value] = (objectsByKeyValue[value] || []).concat(obj);
             return objectsByKeyValue;
         }, {});
-
-    // var array = [{ name: "filter_color", value: "black" }, { name: "filter_color", value: "blue" }, { name: "filter_size", value: "l" }, { name: "filter_size", value: "m" }],
-    //     result = groupBy(array, 'name', function (s, t) {
-    //         t.value = t.value ? t.value + ',' + s.value : s.value;
-    //     });
 
     function popup_chat() {
         console.log('ready!');
@@ -876,6 +860,12 @@
 
 
 </script>
+
+<script>
+    /* SET_INTERVALS */
+    setInterval(checkNewPrivateChat,4000);
+</script>
+
 
 <script>
     /* Disabled */

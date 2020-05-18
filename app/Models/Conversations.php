@@ -25,12 +25,17 @@ class Conversations extends Model
     }
 
 
+    public function allMessages()
+    {
+        return $this->hasMany('App\Models\PrivateMessages', 'conversation_id');
+    }
+
+
     public function messages()
     {
         return $this->hasMany('App\Models\PrivateMessages', 'conversation_id')
             ->latest()->take(10);
     }
-
 
     public static function getId($sender, $receiver)
     {
@@ -66,13 +71,4 @@ class Conversations extends Model
             ? PrivateMessages::addMessage($_user_id, $_receiver_id, $_room_id, $_message, $newConversation->id) : false;
     }
 
-//    public static function addConversation($_user_id, $_receiver_id, $_room_id, $_message)
-//    {
-//        $newConversation = new Conversations();
-//        $newConversation->room_id = $_room_id;
-//        $newConversation->user_one = $_user_id;
-//        $newConversation->user_two = $_receiver_id;
-//        return $newConversation->save()
-//            ? PrivateMessages::addMessage($_user_id, $_receiver_id, $_room_id, $_message,$newConversation->id) :false;
-//    }
 }
