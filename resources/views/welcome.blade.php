@@ -42,6 +42,7 @@
             <h6>&copy;
                 <script>document.write(new Date().getFullYear())</script>
                 | {{ config('app.name', 'chatRoom') }}</h6>
+            <span style="color:#ffffff;font-size:14px;">developed by Manchister</span>
         </div>
     </div>
 </div>

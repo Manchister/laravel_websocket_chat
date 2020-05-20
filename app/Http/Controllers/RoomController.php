@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BlockUsers;
 use App\Models\Conversations;
+use App\Models\Message;
 use App\Models\Room;
 use App\Models\User;
 use App\Models\PrivateMessages;
@@ -19,12 +20,12 @@ use Illuminate\Support\Facades\Hash;
 class RoomController extends Controller
 {
 
-    protected $anonymous_domain = 'anonymous.com';
-
     use RegistersUsers;
 
-    public function anonymous($admin)
+    public function anonymous(Request $request)
     {
+        $admin = $request->id;
+        $nick_name = $request->nick_name;
         if (DB::table(config('admin.database.admin_uris_table'))->where('uri', $admin)->count() <= 0) {
             return back()->withInput()->withErrors([
                 'room_id' => "لايوجد مشرف بهذا الاسم: " . "$admin",
@@ -37,11 +38,11 @@ class RoomController extends Controller
             if (User::query()->where('username', $id)->count() > 0) {
                 $user = User::query()->where('username', $id)->first();
             } else {
-                $nick_name = 'Guest' . rand(50, 100) . $id;
+//                $nick_name = 'Guest' . rand(50, 100) . $id;
                 $data = [
                     'name' => '#f00000',
                     'username' => $id,
-                    'email' => $id . $this->anonymous_domain,
+                    'email' => $id .'@'. route('domain'),
                     'nick_name' => $nick_name,
                     'password' => $id,
                     'admin_id' => $admin_id,
@@ -74,7 +75,7 @@ class RoomController extends Controller
 
     protected function createUserRoles($user)
     {
-        for ($i = 1; $i < 6; $i++) {
+        for ($i = 1; $i < 7; $i++) {
             DB::table('user_role_users')->insert(['user_id' => $user->id, 'role_id' => $i]);
         }
     }
@@ -85,6 +86,7 @@ class RoomController extends Controller
         if (Auth::user()->user_level == 3) {
             $user_id = $request->user_id;
             $role_id = $request->role_id;
+
             if ($role_id == 100) {
                 $room_id = $request->room_id;
                 $block_time = $request->block_time;
@@ -169,7 +171,9 @@ class RoomController extends Controller
         $room = Room::find($room);
         $room_users = $room->roomUsers();
 
-        return view('room.single', ['id' => $id, 'rooms' => $rooms, 'room' => $room, 'supervisor' => $created_by, 'room_users' => $room_users]);
+        $messages = $this->retrievePublicMessages($room->id,1);
+
+        return view('room.single', ['id' => $id, 'rooms' => $rooms, 'room' => $room, 'supervisor' => $created_by, 'room_users' => $room_users, 'messages'=>$messages]);
     }
 
     public function loadUserActions(Request $request)
@@ -192,11 +196,10 @@ class RoomController extends Controller
     protected function checkPrivateChatAbility($me_id, $he_id, $room_id): bool
     {
         if ($me_id != Auth::id()) {
-            dd('01');
             return false;
         }
         $me = auth()->user();
-        if (auth()->user()->user_level == 3 || ($me->can('active') && $me->can('can_make_private_chat'))) {
+        if ($me->user_level == 3 || ($me->can('active') && $me->can('can_make_private_chat'))) {
             if (Room::find($room_id)->exists()) {
 //                $room = Room::find($room_id);
 //                $created_by = $room->created_by;
@@ -239,9 +242,6 @@ class RoomController extends Controller
         } else {
             return false;
         }
-//        return DB::table('private_messages')->where(['private_messages.receiver_id' => Auth::id(), 'private_messages.is_seen' => 0])
-//            ->join('users', 'private_messages.user_id', '=', 'users.id')
-//            ->get(['user_id', 'users.nick_name', 'private_messages.conversation_id'])->unique()->toArray();
     }
 
     public function setSeen(Request $request)
@@ -277,14 +277,87 @@ class RoomController extends Controller
             ->join('users', 'private_messages.user_id', '=', 'users.id')
             ->orderBy('private_messages.created_at', 'desc')->take(25)
             ->get(['user_id', 'receiver_id', 'message', 'users.nick_name', 'private_messages.created_at'])->groupBy('private_messages.user_id')->toArray();
-
-
-//        $messages = PrivateMessages::query()->where(['private_messages.receiver_id'=>Auth::id(),'private_messages.is_seen'=>0])
-//            ->leftJoin('users', 'private_messages.user_id', '=', 'users.id')
-//            ->latest()->take(25)->get()->groupBy('private_messages.user_id');
-//        return response()->json($messages);
         return $messages[''];
     }
+
+
+    public function sendPublicMessage(Request $request) {
+        $this->middleware(['auth']);
+        if ($this->checkPublicChatAbility($request->room_id)) {
+            return Message::addMessage(Auth::id(), $request->room_id, $request->message);
+        } else {
+            return false;
+        }
+    }
+
+    protected function checkPublicChatAbility($room_id): bool
+    {
+//        dd(Auth::id());
+        $me = auth()->user();
+        if ($me->user_level == 3 || ($me->can('active') && $me->can('can_write'))) {
+            if (Room::find($room_id)->exists()) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+
+    public function checkNewPublicMessages(Request $request)
+    {
+        $this->middleware(['auth']);
+        return $this->retrievePublicMessages($request->room_id,0,$request->last_msg);
+    }
+
+    private function retrievePublicMessages($room_id,$first_load=1,$last_msg=null)
+    {
+        if ($first_load == 1) {
+            $query = DB::table('messages')->where(['messages.room_id' => $room_id]);
+            if ($query->exists()) {
+                $messages = $query->join('users', 'messages.user_id', '=', 'users.id')
+                    ->orderBy('messages.created_at', 'desc')->take(100)
+                    ->get(['messages.id','user_id', 'message', 'users.nick_name', 'users.name', 'messages.created_at'])
+                    ->reverse()->values()->groupBy('messages.id')->toArray();
+                return $messages[''];
+            } else {
+                return false;
+            }
+        } else if ($first_load == 0 && $last_msg!==null) {
+            $query = DB::table('messages')->where(['messages.room_id' => $room_id, ['messages.id','>',$last_msg]]);
+            if ($query->exists()) {
+                $messages = $query->join('users', 'messages.user_id', '=', 'users.id')
+                    ->orderBy('messages.created_at', 'desc')
+                    ->get(['messages.id','user_id', 'message', 'users.nick_name', 'users.name', 'messages.created_at'])
+                    ->reverse()->values()->groupBy('messages.id')->toArray();
+                return $messages[''];
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+
+    public function checkUserCanWrite(){
+        $this->middleware('auth');
+        return (Auth::user()->can('can_write') && Auth::user()->can('active'));
+    }
+
+    public function checkUserIsActive(){
+        $this->middleware('auth');
+        if (!Auth::user()->can('active')){
+//            Auth::logout();
+            return false;
+//            return redirect('');
+        } else return true;
+    }
+
+
+
 
 
     public function index(Request $request, $id = 'none')

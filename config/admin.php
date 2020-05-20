@@ -11,7 +11,7 @@ return [
     | login page.
     |
     */
-    'name' => env('APP_NAME', 'laravel')."_admin",
+    'name' => env('APP_NAME', 'ChatRooms')."_admin",
 
     /*
     |--------------------------------------------------------------------------
@@ -22,7 +22,7 @@ return [
     | `img` tag, eg '<img src="http://logo-url" alt="Admin logo">'.
     |
     */
-    'logo' => '<b>Laravel</b> admin',
+    'logo' => '<b>ChatRooms</b> admin',
 
     /*
     |--------------------------------------------------------------------------
@@ -34,7 +34,7 @@ return [
     | '<img src="http://logo-url" alt="Admin logo">'.
     |
     */
-    'logo-mini' => '<b>La</b>',
+    'logo-mini' => '<b>CR</b>',
 
     /*
     |--------------------------------------------------------------------------

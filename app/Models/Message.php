@@ -18,6 +18,6 @@ class Message extends Model
         $newMessage->room_id = $_roomId;
         $newMessage->user_id = $_userId;
 
-        $newMessage->save();
+        return $newMessage->save() ? $newMessage:false;
     }
 }

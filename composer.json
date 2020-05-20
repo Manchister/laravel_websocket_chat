@@ -10,17 +10,16 @@
     "require": {
         "php": "^7.2.5",
         "ext-json": "*",
-        "ext-memcache": "*",
         "cboden/ratchet": "^0.4.2",
         "encore/laravel-admin": "^1.7",
         "fideloper/proxy": "^4.2",
         "fruitcake/laravel-cors": "^1.0",
         "guzzlehttp/guzzle": "^6.3",
+        "jenssegers/date": "^4.0",
         "laravel/framework": "^7.0",
         "laravel/tinker": "^2.0",
         "laravel/ui": "^2.0",
-        "predis/predis": "^1.1",
-        "shetabit/visitor": "^2.1"
+        "predis/predis": "^1.1"
     },
     "require-dev": {
         "facade/ignition": "^2.0",

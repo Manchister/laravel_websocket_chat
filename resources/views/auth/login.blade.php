@@ -65,13 +65,6 @@
                         <form class="form-horizontal" method="POST" action="{{ route('register') }}">
                             {{ csrf_field() }}
 
-                            <label>{{__('auth.Name')}}</label>
-                            <input id="name" type="text" class="form-control" name="name" value="{{ old('name') }}"
-                                   required autofocus>
-                            @if ($errors->has('name'))
-                                <span class="help-block"><strong>{{ $errors->first('name') }}</strong></span>
-                            @endif
-
                             <label>{{__('auth.UserName')}}</label>
                             <input id="username" type="text" class="form-control" name="username"
                                    value="{{ old('username') }}" required autofocus>
@@ -84,6 +77,18 @@
                                    value="{{ old('nick_name') }}" required>
                             @if ($errors->has('nick_name'))
                                 <span class="help-block"><strong>{{ $errors->first('nick_name') }}</strong></span>
+                            @endif
+                            <label>لون الإسم</label>
+                            {{--                            <input id="name" type="text" class="form-control" name="name" value="{{ old('name') }}"--}}
+                            {{--                                   required autofocus>--}}
+                            <input aria-label="Default" aria-describedby="inputGroup-sizing-default"
+                                   id="name"name='name' required autofocus
+                                   type="color" class="form-control"
+                                   value="{{ old('name') }}">
+                            @if ($errors->has('name'))
+                                <span class="help-block">
+                                            <strong>{{ $errors->first('name') }}</strong>
+                                        </span>
                             @endif
 
                             <label>{{__('auth.E-Mail Address')}}</label>
@@ -137,8 +142,15 @@
                         </form>
                         <hr>
                         <div class="anonymous text-center" style="margin: 25px auto 0 auto;">
-                            <span class="btn-block" style="font-size: 16px;color: #ffffff; letter-spacing: 1px;">أو.. يمكنك الدخول كزائر مؤقت</span>
-                            <a href="{{route('anonymous', ['id'=>$id])}}" class="btn btn-success btn-block" onclick="" id="goAnonymous" style="margin-top: 15px; letter-spacing: 1px;">الدخول كزائر</a>
+                            <form class="form-horizontal" method="POST" action="{{route('anonymous')}}">
+                                {{ csrf_field() }}
+                                <span class="btn-block" style="font-size: 16px;color: #ffffff; letter-spacing: 1px;">أو.. يمكنك الدخول كزائر مؤقت</span><label>{{__('auth.nick_name')}}</label>
+                                <input id="nick_name" type="text" class="form-control" name="nick_name"
+                                   value="{{ old('nick_name') }}" required>
+{{--                            <a href="{{route('anonymous', ['id'=>$id])}}" class="btn btn-success btn-block" onclick="" id="goAnonymous" style="margin-top: 15px; letter-spacing: 1px;">الدخول كزائر</a>--}}
+                                <input type="hidden" name="id" value="{{$id}}" required>
+                                <input type="submit" class="btn btn-primary btn-block" id="goAnonymous" style="margin-top: 15px; letter-spacing: 1px;" value="{{__('auth.login')}}"/>
+                            </form>
                         </div>
 
 
@@ -152,6 +164,8 @@
             <h6>&copy;
                 <script>document.write(new Date().getFullYear())</script>
                 | {{ config('app.name', 'chatRoom') }}</h6>
+            <span style="color:#ffffff;font-size:14px;">developed by Manchister</span>
+
         </div>
     </div>
 </div>

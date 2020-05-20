@@ -8,6 +8,8 @@
     {{--<meta name="can_write" content="{{ auth()->user()->can('can_write') ?? ''}}">--}}
     {{--<meta name="can_change_name_color" content="{{ auth()->user()->can('can_change_name_color') ?? ''}}">--}}
     {{--<meta name="can_send_pics" content="{{ auth()->user()->can('can_send_pics') ?? ''}}">--}}
+    <meta name="is_active" content="{{ auth()->user()->can('active') ?? ''}}">
+    <meta name="can_write" content="{{ auth()->user()->can('can_write') ?? ''}}">
     <meta name="can_make_private_chat" content="{{ auth()->user()->can('can_make_private_chat') ?? ''}}">
     <meta name="is_room_supervisor" content="{{ auth()->user()->can('is_room_supervisor') ?? ''}}">
     <meta name="is_supervisor" content="{{ auth()->user()->user_level == 3 ?? ''}}">
@@ -52,16 +54,78 @@
     <link rel='stylesheet prefetch'
           href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.2/css/font-awesome.min.css'>
     <link rel="stylesheet" href="{{asset ('/css/room.css')}}" type="text/css" media="all"/>
+
+    <link rel="stylesheet" href="https://rawgit.com/mervick/emojionearea/master/dist/emojionearea.css" type="text/css" media="all"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/emojione/assets/3.1/sprites/emojione-sprite-32.css" type="text/css" media="all"/>
+
+
+
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.rawgit.com/mervick/emojionearea/master/dist/emojionearea.min.css">
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://cdn.rawgit.com/mervick/emojionearea/master/dist/emojionearea.min.js"></script>
+    <script src="{{ asset('js/moment.min.js') }}"></script>
+    <script src="{{ asset('js/moment_ar.js') }}"></script>
+
+<style>
+
+    .span6 {
+        float: left;
+        width: 48%;
+        padding: 1%;
+    }
+
+</style>
 </head>
 
 <body style="direction: rtl">
+
+<div id="loader">
+    <h1 style="font-size: 28px;" class="text-center text-danger">لقد تم وقف حسابك ...</h1>
+    <svg width="100" height="100" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg" stroke="#dc3545">
+        <g fill="none" fill-rule="evenodd" stroke-width="2">
+            <circle cx="22" cy="22" r="1">
+                <animate attributeName="r"
+                         begin="0s" dur="1.8s"
+                         values="1; 20"
+                         calcMode="spline"
+                         keyTimes="0; 1"
+                         keySplines="0.165, 0.84, 0.44, 1"
+                         repeatCount="indefinite"/>
+                <animate attributeName="stroke-opacity"
+                         begin="0s" dur="1.8s"
+                         values="1; 0"
+                         calcMode="spline"
+                         keyTimes="0; 1"
+                         keySplines="0.3, 0.61, 0.355, 1"
+                         repeatCount="indefinite"/>
+            </circle>
+            <circle cx="22" cy="22" r="1">
+                <animate attributeName="r"
+                         begin="-0.9s" dur="1.8s"
+                         values="1; 20"
+                         calcMode="spline"
+                         keyTimes="0; 1"
+                         keySplines="0.165, 0.84, 0.44, 1"
+                         repeatCount="indefinite"/>
+                <animate attributeName="stroke-opacity"
+                         begin="-0.9s" dur="1.8s"
+                         values="1; 0"
+                         calcMode="spline"
+                         keyTimes="0; 1"
+                         keySplines="0.3, 0.61, 0.355, 1"
+                         repeatCount="indefinite"/>
+            </circle>
+        </g>
+    </svg>
+</div>
+
 <?php
-//        foreach (\App\Models\User::all() as $user) {
-//            if($user->isOnline()) {
-//                dump($user->id);
-//            }
-//        }die;
-//        dd(auth()->user()->can('can_make_private_chat'));
+use App\Hoss\Hoss;
+use Jenssegers\Date\Date;
+Date::setLocale('ar');
 ?>
 <div id="frame">
 
@@ -126,22 +190,6 @@
                             </li>
                             <div style="margin-top: -26%;" class="dropdown-menu" aria-labelledby="dropdownMenuButton"
                                  id="dropdown_menu_{{$user->id}}">
-                                <div style="margin-top: -26%; position: absolute; transform: translate3d(0px, 79px, 0px); top: 0px; left: 0px; will-change: transform;"
-                                     class="dropdown-menu show" aria-labelledby="dropdownMenuButton"
-                                     id="dropdown_menu_24" x-placement="bottom-start"><a
-                                            class="dropdown-item private_chat" id="24" href="#">إرسال رسالة خاصة</a><a
-                                            class="dropdown-item my_modal_class block_message_send" id="24"
-                                            href="#user_settings_model" data-body="إختر مدة الكتم"
-                                            data-title="إعدادات الكتم" data-role-id="1" data-user-id="24"
-                                            data-room-id="6" data-toggle="modal">كتم</a><a
-                                            class="dropdown-item private_message" id="24" href="#">السماح بإرسال رسائل
-                                        خاصة</a><a class="dropdown-item my_modal_class block_from_room" id="24"
-                                                   href="#user_settings_model" data-body="إختر مدة الطرد"
-                                                   data-title="إعدادات الطرد" data-role-id="2" data-user-id="24"
-                                                   data-room-id="6" data-toggle="modal">طرد من الغرفة</a><a
-                                            class="dropdown-item change_color" id="24" href="#">السماح بتغيير لون
-                                        الاسم</a><a class="dropdown-item stop_account" id="24" href="#">إيقاف الحساب</a>
-                                </div>
                             </div>
                         </div>
                     @else
@@ -194,9 +242,10 @@
 
     <div class="content">
         <div class="contact-profile">
-            <img style="height: 40px" id="room_img" src=""
+            <img style="height: 40px" id="room_img"
+                 src="{{ $room->avatar ??  "https://previews.123rf.com/images/littleartvector/littleartvector1901/littleartvector190100024/126067615-interior-background-with-cozy-colorful-living-room-vector-illustration.jpg"}}"
                  alt=""/>
-            <p id="room_name"></p>
+            <p id="room_name">{{$room->name}}</p>
             {{--<div class="social-media">
                 <i class="fa fa-facebook" aria-hidden="true"></i>
                 <i class="fa fa-twitter" aria-hidden="true"></i>
@@ -205,49 +254,52 @@
         </div>
         <div class="messages">
             <ul id="message_box">
-                {{--قسم الرسائل--}}
-                {{-- <li class="sent" >
-                     <img src="http://emilcarlsson.se/assets/mikeross.png" alt=""/>
-                     <p>How the hell am I supposed to get a jury to believe you when I am not even sure that I do?!</p>
-                 </li>
-                 <li class="replies">
-                     <img src="http://emilcarlsson.se/assets/harveyspecter.png" alt=""/>
-                     <p>When you're backed against the wall, break the god damn thing down.</p>
-                 </li>--}}
-                {{--<li class="replies">
-                    <img src="http://emilcarlsson.se/assets/harveyspecter.png" alt="" />
-                    <p>Excuses don't win championships.</p>
-                </li>
-                <li class="sent">
-                    <img src="http://emilcarlsson.se/assets/mikeross.png" alt="" />
-                    <p>Oh yeah, did Michael Jordan tell you that?</p>
-                </li>
-                <li class="replies">
-                    <img src="http://emilcarlsson.se/assets/harveyspecter.png" alt="" />
-                    <p>No, I told him that.</p>
-                </li>
-                <li class="replies">
-                    <img src="http://emilcarlsson.se/assets/harveyspecter.png" alt="" />
-                    <p>What are your choices when someone puts a gun to your head?</p>
-                </li>
-                <li class="sent">
-                    <img src="http://emilcarlsson.se/assets/mikeross.png" alt="" />
-                    <p>What are you talking about? You do what they say or they shoot you.</p>
-                </li>
-                <li class="replies">
-                    <img src="http://emilcarlsson.se/assets/harveyspecter.png" alt="" />
-                    <p>Wrong. You take the gun, or you pull out a bigger one. Or, you call their bluff. Or, you do any one of a hundred and forty six other things.</p>
-                </li>--}}
+                @foreach($messages as $message)
+                    <?php //dd($message); ?>
+                    @if($message->user_id == \Illuminate\Support\Facades\Auth::id())
+                        <li class="sent" data-id="{{$message->id}}">
+                            <img src="http://emilcarlsson.se/assets/mikeross.png" alt=""/>
+                            <span>
+                                <p class="name"
+                                   style=" font-size: 75%; margin: -7px 0 7px 0; color:{{$message->name}}"> {{$message->nick_name}} </p>
+                                <p style="word-wrap: break-word;">{!! $message->message !!}</p>
+                                <p class="message-time"
+                                   style=" font-size: 75%; margin: 0 0 -5px 0; text-align: right; ">
+                                    {{Hoss::convertToArabicNumbers(Date::createFromDate($message->created_at)->format('d-m-Y  H:m:s a'))}}
+                                </p>
+                            </span>
+                        </li>
+                    @else
+                        <li class="replies" data-id="{{$message->id}}">
+                            <img src="http://emilcarlsson.se/assets/mikeross.png" alt=""/>
+                            <span>
+                                <p class="name"
+                                   style=" font-size: 75%; margin: -7px 0 7px 0; color:{{$message->name}}"> {{$message->nick_name}} </p>
+                                <p style="word-wrap: break-word;">{!! $message->message !!}</p>
+                                <p class="message-time"
+                                   style=" font-size: 75%; margin: 0 0 -5px 0; text-align: right; ">
+                                    {{Hoss::convertToArabicNumbers(Date::createFromDate($message->created_at)->format('d-m-Y  H:m:s a'))}}
+                                </p>
+                            </span>
+                        </li>
+                    @endif
+                @endforeach
             </ul>
         </div>
         <div class="message-input">
-            <div class="wrap">
+            <div class="wrap input-editor">
+
+
+
+
                 @if(auth()->user()->can('can_write') || auth()->user()->user_level == 3)
-                    <input type="text" placeholder="{{__('room.Write your message...')}}">
+                    <input type="text" id="p_msg_input" class="p_msg_input"
+                              placeholder="{{__('room.Write your message...')}}">
+                    <div id="divOutside" class="divOutside">
                 @else
-                    <input type="text" placeholder="{{__('تم تعليقك من الكتابة مؤقتا...')}}" readonly>
+                    <input type="text" id="p_msg_input" placeholder="{{__('تم تعليقك من الكتابة مؤقتا...')}}" readonly>
                 @endif
-                <i class="fa fa-paperclip attachment" aria-hidden="true"></i>
+{{--                <i class="fa fa-paperclip attachment" aria-hidden="true"></i>--}}
                 <button class="submit"><i class="fa fa-paper-plane" aria-hidden="true"></i></button>
             </div>
         </div>
@@ -280,7 +332,7 @@
                         </div>
                         {{--<input type="text" class="form-control" aria-label="Default" aria-describedby="inputGroup-sizing-default">--}}
                         <input aria-label="Default" aria-describedby="inputGroup-sizing-default"
-                               name='nick_name'
+                               name='nick_name' id="nick_name_input"
                                type="text" class="form-control"
                                value="{{auth()->user()->nick_name}}">
                     </div>
@@ -388,11 +440,25 @@
 {{--<script>console.log(`<?php dd(\Illuminate\Support\Facades\DB); ?>`)</script>--}}
 {{--<script src='//production-assets.codepen.io/assets/common/stopExecutionOnTimeout-b2a7b3fe212eaa732349046d8416e00a9dec26eb7fd347590fbced3ab38af52e.js'></script>--}}
 {{--<script src='https://code.jquery.com/jquery-2.2.4.min.js'></script>--}}
-<script src="{{ asset('js/jquery-3.1.1.js') }}"></script>
-<script src="{{ asset('js/app.js') }}" defer></script>
+{{--<script src="{{ asset('js/jquery-3.1.1.js') }}"></script>--}}
+<script>
+    $(document).ready(function() {
+        $("#p_msg_input").emojioneArea({
+            pickerPosition: "top",
+            tonesStyle: "radio"
+        });
+    });
+</script>
+
+<script>
+    $(document).ready(()=>$(".messages").scrollTop(10000000000,'slow'));
+</script>
 
 <script>
     /* PREPARE VARIABLES */
+
+    moment.locale('ar');
+
     const _token = $('input[name="_token"]').val();
     let usersArr = [];
     let room_id = `{{$room->id}}`;
@@ -400,7 +466,10 @@
     let supervisor = `{{$supervisor}}`;
     let rooms_holder = $('#rooms_holder');
     let users_holder = $('#users_holder');
-    let isActive = true;
+    let nick_name = $('meta[name=nick_name]').attr('content');
+    let name_color = $('meta[name=name_color]').attr('content');
+    let isActive = $('meta[name=is_active]').attr('content');
+    let canWrite = $('meta[name=can_write]').attr('content');
     // let conversation_id = false;
     // let settings_holder = $('#settings_holder');
 </script>
@@ -439,10 +508,65 @@
         });
     });
 
+
 </script>
 
 <script>
     /* Users Actions Menu */
+    function checkUserCanWrite() {
+        let _data = {
+            room_id: room_id,
+        }
+        let _url = `{{route('check_user_can_write')}}`;
+        $.ajaxSetup({headers: {'X-CSRF-Token': _token}});
+        $.ajax({
+            url: _url,
+            method: 'POST',
+            dataType: 'json',
+            data: _data,
+            cache: false,
+            success: function (response) {
+                if (response == true) {
+                    toggleMessageInputs(1);
+                } else if (response != true) {
+                    toggleMessageInputs(0);
+                }
+            }
+        });
+    }
+    function checkUserIsActive() {
+        let _data = {
+            room_id: room_id,
+        }
+        let _url = `{{route('check_user_is_active')}}`;
+        $.ajaxSetup({headers: {'X-CSRF-Token': _token}});
+        $.ajax({
+            url: _url,
+            method: 'POST',
+            dataType: 'json',
+            data: _data,
+            cache: false,
+            success: function (response) {
+                if (response != true) {
+                     eventUserDisabled();
+                }
+            }
+        });
+    }
+
+    function eventUserDisabled() {
+        let loader = $('#loader');
+        loader.show().addClass('loader');
+    }
+
+    function toggleMessageInputs(can){
+        if(!can){
+            $('#p_msg_input').attr('disabled','disabled').attr('readonly','readonly').attr('placeholder','تم تعليقك من الكتابة مؤقتا');
+        } else if(can) {
+            $('#p_msg_input').removeAttr('disabled').removeAttr('readonly').attr('placeholder','اكتب رسالتك ...');
+        }
+    }
+
     function loadUserDropdownActions(user_id) {
         let _data = {
             he: user_id,
@@ -470,7 +594,112 @@
     function buildUserDropdownActions(user_id, items) {
         let items_holder = $('#dropdown_menu_' + user_id);
         items_holder.html(items);
+        // items_holder.toggleClass('show');
+        onClickAfterUserAppend();
         return;
+    }
+
+    function updateUserRole(uid, role, room = null, block_time = null) {
+        let _data = {
+            user_id: uid,
+            role_id: role,
+            room_id: room,
+            block_time: block_time,
+        }
+        let _url = `{{route('update_user_role')}}`;
+        $.ajaxSetup({headers: {'X-CSRF-Token': _token}});
+        $.ajax({
+            url: _url,
+            method: 'POST',
+            dataType: 'json',
+            data: _data,
+            cache: false,
+            success: function (response) {
+                if (response.status === "success") {
+                    // reloadDropdownItems(uid, role, response.done);
+                    toastr.success("تم التعديل بنجاح", 'تم', {timeOut: 5000});
+                } else if (response.status === "error") {
+                    toastr.error('حاول لاحقا', 'خطأ', {timeOut: 5000});
+                }
+            }
+        });
+        return false;
+    }
+
+    function cancelBlockMessageSend(_this) {
+        let user_id = _this.data('user_id')
+        updateUserRole(user_id,2);
+    }
+
+    function cancelBlockFromRoom(_this) {
+        let user_id = _this.data('user_id')
+        updateUserRole(user_id,100);
+    }
+
+    function cancelAccountDisabled(_this) {
+        let user_id = _this.data('user_id')
+        updateUserRole(user_id,1);
+    }
+
+    function onClickAfterUserAppend() {
+
+
+        $('#user_settings_model').on('show.bs.modal', function (e) {
+            //get data-id attribute of the clicked element
+            let userId = $(e.relatedTarget).data('user-id');
+            //let roomId = $(e.relatedTarget).data('room-id');
+            let roleId = $(e.relatedTarget).data('role-id');
+            let title = $(e.relatedTarget).data('title');
+            let body = $(e.relatedTarget).data('body');
+
+            //populate the textbox
+            $(e.currentTarget).find('input[name="userId"]').val(userId);
+            $(e.currentTarget).find('input[name="roomId"]').val(room_id);
+            $(e.currentTarget).find('input[name="roleId"]').val(roleId);
+            $(e.currentTarget).find('#title').html(title);
+            $(e.currentTarget).find('#body').html(body);
+        });
+
+        $('#user_settings_edit_form').submit(function (e) {
+            e.preventDefault();
+            let data = $('#user_settings_edit_form').serializeArray();
+            let userId = data[0]['value'];
+            let roomId = data[1]['value'];
+            let roleId = data[2]['value'];
+            let blockTime = data[3]['value'];
+            // console.log(userId);
+            switch (roleId) {
+                case '1':
+                    text = $('#user_' + userId).find('.block_message_send').html();
+                    if (text === 'كتم') {
+                        $('#user_' + data[0]['value']).find('.block_message_send').html('إلغاء الكتم');
+                        $('#user_' + data[0]['value']).find('.block_message_send').attr('href', '#');
+
+                    } else {
+                        $('#user_' + data[0]['value']).find('.block_message_send').html('كتم');
+                    }
+                    // console.log($('#user_' + data[0]['value']).find('.block_message_send'));
+                    updateUserRole(userId,2);
+                    break;
+                case '2':
+                    updateUserRole(userId,100,roomId,blockTime);
+                    // $('#user_' + userId).remove();
+                    break;
+                case '3':
+                    updateUserRole(userId,1);
+                    $('#user_' + userId).remove();
+                    break;
+            }
+
+            $('#user_settings_model').modal('hide');
+        });
+
+        $(".change_color").click(function () {
+            let userId = $(this).attr('id');
+
+            updateUserRole(userId,3);
+        });
+
     }
 </script>
 
@@ -862,10 +1091,131 @@
 </script>
 
 <script>
-    /* SET_INTERVALS */
-    setInterval(checkNewPrivateChat,4000);
+    /* Public Chat */
+
+    function appendNewPublicMessage(_msg) {
+        name_color = $('meta[name=name_color]').attr('content');
+        nick_name = $('meta[name=nick_name]').attr('content');
+        $("#message_box").append(`
+        <li class="sent" data-id="${_msg.id}">\n\n
+            <img src="http://emilcarlsson.se/assets/mikeross.png" alt=""/>\n                    \n
+            <span>
+                <p class="name" style=" font-size: 75%; margin: -7px 0 7px 0; color:${name_color}"> ${nick_name} </p>
+                <p style="word-wrap: break-word;">\n                  \n                    ${_msg.message}\n                    </p>
+                <p class="message-time" style=" font-size: 75%; margin: 0 0 -5px 0; text-align: right; ">${moment().format('DD-MM-YYYY HH:mm:ss a')}</p>
+            </span>\n
+        </li>`);
+
+        $('.message-input input').val(null);
+
+        $('.contact.active .preview').html('<span>You: </span>' + _msg.message);
+
+        // $(".messages").animate({scrollTop: docHeight + 93}, "fast");
+        // console.log($(".messages").height());
+        // $(".messages").scrollTop($(".messages").height());
+
+        $(".messages").scrollTop(10000000000000);
+    }
+
+    function newMessage(){
+        // let message = $(".message-input input").val();
+        let message = $(".emojionearea-editor").html();
+console.log(message)
+        if ($.trim(message) == '') {
+            return false;
+        }
+
+        let _data = {
+            message: message,
+            room_id:room_id,
+        }
+        let _url = `{{route('send_public_message')}}`;
+        $.ajaxSetup({headers: {'X-CSRF-Token': _token}});
+        $.ajax({
+            url: _url,
+            method: 'POST',
+            dataType: 'json',
+            data: _data,
+            cache: false,
+            success: function (response) {
+                if(response != null && response!=false) {
+                    $(".emojionearea-editor").html('');
+                    appendNewPublicMessage(response)
+                }
+            }
+        });
+    }
+
+
+    function appendReceivedPublicMessages(_data) {
+
+        $.each(_data, function (index, value)  {
+            if(value.user_id !== current_user){
+                $("#message_box").append(`
+        <li class="replies" data-id=${value.id}>\n\n
+            <img src="http://emilcarlsson.se/assets/mikeross.png" alt=""/>\n                    \n
+            <span>
+                <p class="name" style=" font-size: 75%; margin: -7px 0 7px 0; color:${value.name}"> ${value.nick_name} </p>
+                <p style="word-wrap: break-word;">\n                  \n                    ${value.message}\n                    </p>
+                <p class="message-time" style="
+    font-size: 75%;
+    margin: 0 0 -5px 0;
+    text-align: right;
+">${moment(value.created_at).format('DD-MM-YYYY HH:mm:ss a')}</p>
+            </span>\n
+        </li>`);
+
+            }
+
+        });
+
+        $(".messages").scrollTop(10000000000);
+
+    }
+
+    function checkNewPublicMessages(){
+        let last_msg_id = $('#message_box').children().last().data('id');
+
+        let _data = {
+            room_id:room_id,
+            last_msg:last_msg_id
+        }
+        let _url = `{{route('check_new_public_messages')}}`;
+        $.ajaxSetup({headers: {'X-CSRF-Token': _token}});
+        $.ajax({
+            url: _url,
+            method: 'POST',
+            dataType: 'json',
+            data: _data,
+            cache: false,
+            success: function (response) {
+                console.log(response)
+                if(response != null && response!=false) {
+                    appendReceivedPublicMessages(response)
+                }
+            }
+        });
+    }
+
+    $('.submit').click(function () {
+        newMessage();
+    });
+    $('.p_msg_input').on('keydown', function (e) {
+        if (e.which == 13) {
+            newMessage();
+            return false;
+        }
+    });
+
 </script>
 
+<script>
+    /* SET_INTERVALS */
+    setInterval(checkNewPrivateChat,4000);
+    setInterval(checkNewPublicMessages,4000);
+    setInterval(checkUserIsActive,20000);
+    setInterval(checkUserCanWrite,20000);
+</script>
 
 <script>
     /* Disabled */
@@ -896,39 +1246,61 @@
         return false;
     }
 
-    function reloadDropdownItems(uid, role, done) {
-        let dropdownItem, itemText;
-        switch (role) {
-            case(1):
-                itemText = 'إيقاف الحساب';
-                $('#' + uid + '.stop_account').html(itemText);
-                break;
-            case(2):
-                itemText = (done === 0) ? 'كتم' : 'إغلاق الكتم';
-                $('#' + uid + '.block_message_send').html(itemText);
-                break;
-            case(3):
-                itemText = (done === 0) ? "السماح بتغيير لون الاسم" : "عدم السماح بتغيير لون الاسم";
-                $('#' + uid + '.change_color').html(itemText);
-                break;
-            case(5):
-                itemText = (done === 0) ? "السماح بإرسال رسائل خاصة" : "عدم السماح بإرسال رسائل خاصة";
-                $('#' + uid + '.private_message').html(itemText);
-                break;
-            case(100):
-                itemText = 'طرد من الغرفة';
-                $('#' + uid + '.block_from_room').html(itemText);
-                break;
-        }
-        // return itemText;
-        console.log(itemText);
-    }
+    // function reloadDropdownItems(uid, role, done) {
+    //     let dropdownItem, itemText;
+    //     switch (role) {
+    //         case(1):
+    //             itemText = 'إيقاف الحساب';
+    //             $('#' + uid + '.stop_account').html(itemText);
+    //             break;
+    //         case(2):
+    //             itemText = (done === 0) ? 'كتم' : 'إغلاق الكتم';
+    //             $('#' + uid + '.block_message_send').html(itemText);
+    //             break;
+    //         case(3):
+    //             itemText = (done === 0) ? "السماح بتغيير لون الاسم" : "عدم السماح بتغيير لون الاسم";
+    //             $('#' + uid + '.change_color').html(itemText);
+    //             break;
+    //         case(5):
+    //             itemText = (done === 0) ? "السماح بإرسال رسائل خاصة" : "عدم السماح بإرسال رسائل خاصة";
+    //             $('#' + uid + '.private_message').html(itemText);
+    //             break;
+    //         case(100):
+    //             itemText = 'طرد من الغرفة';
+    //             $('#' + uid + '.block_from_room').html(itemText);
+    //             break;
+    //     }
+    //     // return itemText;
+    //     console.log(itemText);
+    // }
 </script>
 
 {{--<script src="/js/app.js"></script>--}}
 {{--<script src="/js/popup_chat.js"></script>--}}
 <script src="/toastr/build/toastr.min.js"></script>
 
-
+    <script type="text/javascript" src="https://rawgit.com/KevinSheedy/jquery.alphanum/master/jquery.alphanum.js"></script>
+    @if(Auth::user()->can('can_use_special_characters'))
+    <script>
+        $("#nick_name_input").alphanum({
+            allow              : 'àâäæ',
+            disallow           : 'xyz',
+            allowSpace         : false,
+            allowNumeric       : true,
+            allowUpper         : true,
+            allowLower         : true,
+            allowCaseless      : true,
+            allowLatin         : true,
+            allowOtherCharSets : true,
+            forceUpper         : false,
+            forceLower         : false,
+            maxLength          : NaN
+        });
+    </script>
+        @else
+        <script>
+            $("#nick_name_input").alphanum();
+        </script>
+        @endif
 </body>
 </html>

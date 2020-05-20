@@ -649,10 +649,11 @@ body {
 
 #frame .content .messages {
     height: auto;
-    min-height: calc(100% - 93px);
-    max-height: calc(100% - 93px);
+    min-height: calc(100% - 125px);
+    max-height: calc(100% - 130px);
     overflow-y: scroll;
     overflow-x: hidden;
+    width: 100% !important;
 }
 
 @media screen and (max-width: 735px) {
@@ -849,4 +850,62 @@ body {
 .msg_input_submit i.fa {
     font-size: 14px;
     line-height: 18px;
+}
+
+
+
+#loader svg {
+    height: 100% !important;
+    width: 100% !important;
+}
+#loader {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    background: #ce987e63;
+    z-index: 10000;
+}
+.loader {
+    display: -webkit-box !important;
+    display: -ms-flexbox !important;
+    display: flex !important;
+    -webkit-box-pack: center !important;
+    -ms-flex-pack: center !important;
+    justify-content: center !important;
+    -ms-flex-line-pack: center !important;
+    align-content: center !important;
+    -webkit-box-align: center !important;
+    -ms-flex-align: center !important;
+    align-items: center !important;
+}
+.wrap.input-editor {
+    display: flex;
+    flex-direction: row;
+}
+.emojionearea.p_msg_input.emojionearea-inline {
+    position: absolute !important;
+    bottom: 0;
+    width: 96% !important;
+    left: 0;
+    height: 49px !important;
+}
+.emojionearea .emojionearea-picker.emojionearea-picker-position-bottom {
+    /*margin-top: 10px !important;*/
+    /*right: -14px !important;*/
+    /*top: -300px !important;*/
+}
+.emojionearea .emojionearea-editor:empty::before {
+    content: attr(placeholder);
+    display: block;
+    color: #BBB;
+    text-align: right !important;
+    direction: rtl !important;
+}
+.emojionearea.emojionearea-inline > .emojionearea-editor {
+    direction: rtl;
+    text-align: right;
 }

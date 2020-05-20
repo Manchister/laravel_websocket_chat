@@ -54,7 +54,8 @@ class Room extends Model
     }
 
     public function roomUsers() {
-        return User::query()->where('created_by','=',$this->user_id)->orWhere('id',$this->user_id)->get();
+        return User::query()->where('created_by','=',$this->user_id)->get();
+//            ->orWhere('id',$this->user_id)->get();
     }
 
     public function onlineRoomUsers() {
