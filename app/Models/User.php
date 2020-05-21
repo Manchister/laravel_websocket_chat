@@ -179,9 +179,16 @@ class User extends Authenticatable
             $this->can('can_make_private_chat'),
             $this->isBlocked($room_id),
             $this->can('can_change_name_color'),
-            $this->can('active')
+            $this->can('active'),
+            $this->can('can_use_special_characters')
         ];
-        return $this->generateUserActionsHtml($actions, $room_id);
+        if(auth()->user()->user_level == 3){
+            return $this->generateUserActionsHtml($actions, $room_id);
+        } else {
+            return $actions[0] ? '<button class="dropdown-item private_chat" data-username="'.$this->nick_name.'" data-user_id="' . $this->id . '" onclick="startPrivateChat($(this))" href="#">إرسال رسالة خاصة</button>' : '';
+
+        }
+
     }
 
     private function generateUserActionsHtml($actions, $room_id)
@@ -189,7 +196,7 @@ class User extends Authenticatable
         $user_id = $this->id;
         $new_private_message = $actions[0] ? '<button class="dropdown-item private_chat" data-username="'.$this->nick_name.'" data-user_id="' . $user_id . '" onclick="startPrivateChat($(this))" href="#">إرسال رسالة خاصة</button>' : '';
 
-        $can_send_message = !$actions[1] ? '<a class="dropdown-item block_message_send" data-user_id="' . $user_id . '" onclick="cancelAccountDisabled($(this))" id="' . $user_id . '" href="#">إلغاء الكتم</a>' :
+        $can_send_message = !$actions[1] ? '<a class="dropdown-item block_message_send" data-user_id="' . $user_id . '" onclick="cancelBlockMessageSend($(this))" id="' . $user_id . '" href="#">إلغاء الكتم</a>' :
             '<a class="dropdown-item my_modal_class block_message_send" id="' . $user_id . '" href="#user_settings_model"
             data-body="إختر مدة الكتم" data-title="إعدادات الكتم" data-role-id="1" data-user-id="' . $user_id . '" data-room-id="' . $room_id . '" 
             data-toggle="modal">كتم</a>';
@@ -197,7 +204,7 @@ class User extends Authenticatable
         $can_send_private_message = $actions[2] ? '<a class="dropdown-item private_message" id="' . $user_id . '" href="#">عدم السماح بإرسال رسائل خاصة</a>' :
             '<a class="dropdown-item private_message" id="' . $user_id . '" href="#">السماح بإرسال رسائل خاصة</a>';
 
-        $block_from_room = !$actions[3] ? '<a class="dropdown-item block_from_room" data-user_id="' . $user_id . '" onclick="cancelBlockFromRoom($(this))" id="' . $user_id . '" href="#">إلغاء الطرد</a>' :
+        $block_from_room = $actions[3] ? '<a class="dropdown-item block_from_room" data-user_id="' . $user_id . '" onclick="cancelBlockFromRoom($(this))" id="' . $user_id . '" href="#">إلغاء الطرد</a>' :
             '<a class="dropdown-item my_modal_class block_from_room" id="' . $user_id . '" href="#user_settings_model"
             data-body="إختر مدة الطرد" data-title="إعدادات الطرد" data-role-id="3" data-user-id="' . $user_id . '"
             data-room-id="' . $room_id . '" data-toggle="modal">طرد من الغرفة</a>';
@@ -205,12 +212,15 @@ class User extends Authenticatable
         $can_change_name_color = $actions[4] ? '<a class="dropdown-item change_color"  id="' . $user_id . '" href="#" >عدم السماح بتغيير لون الاسم</a>' :
             '<a class="dropdown-item change_color"  id="' . $user_id . '" href="#" >السماح بتغيير لون الاسم</a>';
 
+        $can_use_special_characters = $actions[6] ? '<a class="dropdown-item special_char"  id="' . $user_id . '" href="#" >عدم السماح بزخرفة الاسم</a>' :
+            '<a class="dropdown-item special_char"  id="' . $user_id . '" href="#" >السماح بزخرفة الاسم</a>';
+
         $active = !$actions[5] ? '<a class="dropdown-item stop_account" data-user_id="' . $user_id . '" onclick="cancelAccountDisabled($(this))" id="' . $user_id . '" href="#" >تفعيل الحساب</a>' :
             '<a class="dropdown-item stop_account" id="' . $user_id . '" href="#user_settings_model"
             data-body="إختر مدة الإيقاف" data-title="إعدادات الإيقاف" data-role-id="2" data-user-id="' . $user_id . '" data-room-id="' . $room_id . '" 
             data-toggle="modal" >إيقاف الحساب</a>';
 
-        return $new_private_message . $can_send_message . $can_send_private_message . $block_from_room . $can_change_name_color . $active;
+        return $new_private_message . $can_send_message . $can_send_private_message . $block_from_room . $can_change_name_color . $can_use_special_characters . $active;
     }
 
 

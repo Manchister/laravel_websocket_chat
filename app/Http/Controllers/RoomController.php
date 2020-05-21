@@ -147,7 +147,7 @@ class RoomController extends Controller
     }
 
     // $id = $admin
-    public function single($id, $room)
+    public function single($id, $room_id)
     {
         $this->middleware(['auth']);
         if (isset(Auth::user()->user_level)) {
@@ -168,10 +168,14 @@ class RoomController extends Controller
             $rooms = Room::getRooms($created_by);
         }
 
-        $room = Room::find($room);
+        $room = Room::find($room_id);
+
         $room_users = $room->roomUsers();
 
-        $messages = $this->retrievePublicMessages($room->id,1);
+        $messages = $this->retrievePublicMessages($room_id,1);
+//        dump($room->name);
+//        dump(Room::find($room_id)->name);
+//        dd(Room::find(6)->name);
 
         return view('room.single', ['id' => $id, 'rooms' => $rooms, 'room' => $room, 'supervisor' => $created_by, 'room_users' => $room_users, 'messages'=>$messages]);
     }
@@ -349,10 +353,19 @@ class RoomController extends Controller
 
     public function checkUserIsActive(){
         $this->middleware('auth');
-        if (!Auth::user()->can('active')){
-//            Auth::logout();
-            return false;
-//            return redirect('');
+        if (!Auth::user()->can('active') && (isset(Auth::user()->user_level) && Auth::user()->user_level!=3)){
+            Auth::logout();
+//            return false;
+            return redirect('');
+        } else return true;
+    }
+
+    public function checkUserIsBlocked(Request $request){
+        $this->middleware('auth');
+        $room = $request->room_id;
+        $blocked = User::find(Auth::id())->isBlocked($room);
+        if ($blocked){
+            return redirect(route('rooms', $request->admin));
         } else return true;
     }
 

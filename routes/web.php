@@ -31,6 +31,7 @@ Route::get('{id?}/rooms/{room?}', 'RoomController@single')->name('single_room');
 Route::post('/lu_actions', 'RoomController@loadUserActions')->name('load_user_actions');
 Route::post('/check_user_can_write', 'RoomController@checkUserCanWrite')->name('check_user_can_write');
 Route::post('/check_user_is_active', 'RoomController@checkUserIsActive')->name('check_user_is_active');
+Route::post('/check_user_is_blocked', 'RoomController@checkUserIsBlocked')->name('check_user_is_blocked');
 
 Route::post('/send_private_message', 'RoomController@sendPrivateMessage')->name('send_private_message');
 Route::post('/check_new_private_chat', 'RoomController@checkNewPrivateChat')->name('check_new_private_chat');
